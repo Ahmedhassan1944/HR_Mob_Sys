@@ -1434,4 +1434,16 @@ body.dark-mode .dash-export-item:hover { background: #2a2a2a; }
 .cand-event-dot:hover .ev-tooltip {
   display: block;
 }
+/* ── Documents Center Specific ── */
+.dc-doctype-chip:hover {
+  background: var(--bg-hover);
+}
+.dc-doctype-check:checked + span {
+  font-weight: 700;
+  color: var(--primary);
+}
+.dc-doctype-chip:has(.dc-doctype-check:checked) {
+  border-color: var(--primary) !important;
+  background: var(--primary-light);
+}
 </style>
