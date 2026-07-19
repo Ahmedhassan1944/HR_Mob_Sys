@@ -3326,8 +3326,8 @@
     },
 
     documentsCenter(container) {
-      // Initialize local state for this view
-      const dc = App.state.documentsCenter = App.state.documentsCenter || {
+      // Always reset filter state and force a fresh load so stale filters never hide candidates
+      const dc = App.state.documentsCenter = {
         candidates: [],
         filteredCandidates: [],
         selectedIds: new Set(),
@@ -3335,6 +3335,16 @@
         filters: { status: [], department: [], nationality: [], position: [], search: '' },
         loaded: false,
       };
+
+      // Reset UI controls to default "All" values before rendering
+      const statusEl = document.getElementById('dc-filter-status');
+      const deptEl = document.getElementById('dc-filter-dept');
+      const natEl = document.getElementById('dc-filter-nat');
+      const searchEl = document.getElementById('dc-search');
+      if (statusEl) statusEl.value = '';
+      if (deptEl) deptEl.value = '';
+      if (natEl) natEl.value = '';
+      if (searchEl) searchEl.value = '';
 
       container.innerHTML = `
     <div class="page-header">
@@ -3511,11 +3521,27 @@
     _dcClearFilters() {
       ['dc-filter-status','dc-filter-dept','dc-filter-nat'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.value = '';
+        if (el) {
+          el.value = '';
+          // Remove any accidentally selected option state
+          Array.from(el.options).forEach(o => o.selected = (o.value === ''));
+        }
       });
       const s = document.getElementById('dc-search');
       if (s) s.value = '';
-      Views._dcApplyFilters();
+      // Reset the filtered list to the full candidate list and re-render
+      const dc = App.state.documentsCenter;
+      dc.filteredCandidates = [...dc.candidates];
+      dc.selectedIds.clear();
+      Views._dcRender();
+      Views._dcUpdateSelectionLabel();
+      Views._dcUpdateDownloadBtn();
+      Views._dcUpdateStats({
+        totalCandidates: dc.candidates.length,
+        totalSelected: 0,
+        totalAvailableDocs: dc.candidates.reduce((sum, c) => sum + (c.availableCount || 0), 0),
+        totalMissingDocs: dc.candidates.reduce((sum, c) => sum + (c.missingCount || 0), 0)
+      });
     },
 
     _dcRender() {
@@ -3527,7 +3553,25 @@
       if (countEl) countEl.textContent = `${dc.filteredCandidates.length} candidates`;
 
       if (dc.filteredCandidates.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary);">No candidates match the current filters.</td></tr>`;
+        const activeFilters = [];
+        const s = document.getElementById('dc-filter-status')?.value;
+        const d = document.getElementById('dc-filter-dept')?.value;
+        const n = document.getElementById('dc-filter-nat')?.value;
+        const q = document.getElementById('dc-search')?.value;
+        if (s) activeFilters.push('Status: ' + s);
+        if (d) activeFilters.push('Department: ' + d);
+        if (n) activeFilters.push('Nationality: ' + n);
+        if (q) activeFilters.push('Search: ' + q);
+
+        const filterMsg = activeFilters.length
+          ? `<div style="font-size:.85rem;margin-top:8px;color:var(--text-secondary);">Active filters: ${activeFilters.join(' · ')}</div>`
+          : `<div style="font-size:.85rem;margin-top:8px;color:var(--text-secondary);">No active filters. The candidate list from the server is empty.</div>`;
+
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary);">
+          <div style="font-weight:600;">No candidates match the current filters.</div>
+          ${filterMsg}
+          <button class="btn btn--outline btn--sm" onclick="Views._dcClearFilters()" style="margin-top:12px;">Clear all filters</button>
+        </td></tr>`;
         return;
       }
 

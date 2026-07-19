@@ -22,6 +22,7 @@ function api_getDocumentsCenterData(filtersJson) {
     var candidatesSheet = ss.getSheetByName('tbl_Candidates');
     if (!candidatesSheet) throw new Error("Sheet 'tbl_Candidates' not found.");
     var cData = candidatesSheet.getDataRange().getValues();
+    Logger.log("DocumentsCenter: tbl_Candidates row count = " + cData.length + ", headers = " + JSON.stringify(cData[0]));
     if (cData.length < 2) {
       // Empty or headers only
       cData = [cData[0] || []]; 
@@ -49,6 +50,7 @@ function api_getDocumentsCenterData(filtersJson) {
     var fSearch = (filters.search || "").toLowerCase();
 
     var filteredCandidates = [];
+    Logger.log("DocumentsCenter: filters received = " + (filtersJson || '{}'));
     
     // Collect all filter options while we are at it
     var uniqueDepts = {};
@@ -192,6 +194,7 @@ function api_getDocumentsCenterData(filtersJson) {
       }
     };
     
+    Logger.log("DocumentsCenter: returning " + finalCandidates.length + " candidates");
     return result;
   } catch (e) {
     Logger.log("Error in api_getDocumentsCenterData: " + e.message + "\n" + e.stack);
