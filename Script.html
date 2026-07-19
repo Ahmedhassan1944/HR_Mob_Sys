@@ -3358,6 +3358,13 @@
       </div>
     </div>
 
+    <!-- Temporary debug banner — remove after fixing -->
+    <div style="background:#fffbe6;border:1px solid #ffe58f;padding:8px 12px;border-radius:6px;margin-bottom:var(--sp-3);font-size:.8rem;color:#614700;">
+      <strong>Debug:</strong> ExecID = <span id="dc-debug-execid">?</span> |
+      Candidates loaded = <span id="dc-debug-count">?</span> |
+      GAS live = <span id="dc-debug-live">?</span>
+    </div>
+
     <!-- Stats Row -->
     <div id="dc-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:var(--sp-3);margin-bottom:var(--sp-4);">
       <div class="kpi-card"><div class="kpi-card__icon">👥</div><div class="kpi-card__value" id="dc-stat-total">—</div><div class="kpi-card__label">Total Candidates</div></div>
@@ -3458,23 +3465,58 @@
       if (dc.loaded) { Views._dcRender(); return; }
       const tbody = document.getElementById('dc-tbody');
       try {
-        const filtersJson = JSON.stringify({ status: [], department: [], nationality: [], position: [], search: '' });
+        const filtersJson = JSON.stringify({ status: [], department: [], nationality: [], position: '', search: '' });
         const res = await GAS.call('api_getDocumentsCenterData', filtersJson);
-        if (!res || !res.success) {
-          throw new Error((res && res.error) || 'No response from server.');
+
+        // DEBUG: remove after fixing
+        console.log('[DC] raw response:', res);
+        console.log('[DC] execId:', res && res.execId);
+        console.log('[DC] res.candidates count:', res && res.candidates ? res.candidates.length : 'MISSING');
+
+        // Defensive: if the response is a JSON string, parse it
+        let fixedRes = res;
+        if (typeof res === 'string') {
+          try { fixedRes = JSON.parse(res); } catch (e) { throw new Error('Server returned invalid JSON: ' + res); }
         }
-        dc.candidates = res.candidates || [];
-        dc.filteredCandidates = [...(res.candidates || [])];
-        dc.filterOptions = res.filterOptions || {};
+
+        if (!fixedRes || !fixedRes.success) {
+          throw new Error((fixedRes && fixedRes.error) || 'No response from server.');
+        }
+
+        const list = Array.isArray(fixedRes.candidates) ? fixedRes.candidates : [];
+
+        // Temporary debug notice: show if the server said success but returned no candidates
+        if (list.length === 0 && fixedRes.success) {
+          console.warn('[DC] Server returned success with 0 candidates. Raw response:', fixedRes);
+        }
+
+        dc.candidates = list;
+        dc.filteredCandidates = [...list];
+        dc.filterOptions = fixedRes.filterOptions || {};
         dc.loaded = true;
+
+        window.__dcLastResponseType = typeof res;
+        Views._dcDebugUpdate(fixedRes);
         Views._dcPopulateFilterDropdowns();
-        Views._dcUpdateStats(res.stats || {});
+        Views._dcUpdateStats(fixedRes.stats || {});
         Views._dcRender();
       } catch(e) {
         console.error('Documents Center load error:', e);
         if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--danger);">Error loading candidates: ${e.message}<br><button class="btn btn--primary btn--sm" onclick="Views._dcLoad()" style="margin-top:12px;">Retry</button></td></tr>`;
         Toast.show('Failed to load Documents Center: ' + e.message, 'error');
       }
+    },
+
+    _dcDebugUpdate(res) {
+      const dc = App.state.documentsCenter;
+      const live = GAS.isLive ? 'YES' : 'NO (mock)';
+      const count = dc.candidates ? dc.candidates.length : 'undefined';
+      const liveEl = document.getElementById('dc-debug-live');
+      const countEl = document.getElementById('dc-debug-count');
+      const execIdEl = document.getElementById('dc-debug-execid');
+      if (liveEl) liveEl.textContent = live;
+      if (countEl) countEl.textContent = count;
+      if (execIdEl && res && res.execId) execIdEl.textContent = res.execId;
     },
 
     _dcPopulateFilterDropdowns() {

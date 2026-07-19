@@ -14,15 +14,17 @@ function extractFileId_(url) {
  */
 function api_getDocumentsCenterData(filtersJson) {
   try {
-    Logger.log("api_getDocumentsCenterData called with filtersJson: " + (filtersJson || '{}'));
+    var execId = 'dc-' + new Date().getTime() + '-' + Math.floor(Math.random() * 100000);
+    Logger.log("DocumentsCenter: execution started [" + execId + "]");
     var filters = filtersJson ? JSON.parse(filtersJson) : {};
+    Logger.log("[" + execId + "] DocumentsCenter: parsed filters = " + JSON.stringify(filters));
     var ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID'));
     
     // 1. Read all rows from tbl_Candidates
     var candidatesSheet = ss.getSheetByName('tbl_Candidates');
     if (!candidatesSheet) throw new Error("Sheet 'tbl_Candidates' not found.");
     var cData = candidatesSheet.getDataRange().getValues();
-    Logger.log("DocumentsCenter: tbl_Candidates row count = " + cData.length + ", headers = " + JSON.stringify(cData[0]));
+    Logger.log("[" + execId + "] DocumentsCenter: tbl_Candidates row count = " + cData.length + ", headers = " + JSON.stringify(cData[0]));
     if (cData.length < 2) {
       // Empty or headers only
       cData = [cData[0] || []]; 
@@ -50,7 +52,7 @@ function api_getDocumentsCenterData(filtersJson) {
     var fSearch = (filters.search || "").toLowerCase();
 
     var filteredCandidates = [];
-    Logger.log("DocumentsCenter: filters received = " + (filtersJson || '{}'));
+    Logger.log("[" + execId + "] DocumentsCenter: filters received = " + (filtersJson || '{}'));
     
     // Collect all filter options while we are at it
     var uniqueDepts = {};
@@ -177,6 +179,7 @@ function api_getDocumentsCenterData(filtersJson) {
 
     var result = {
       success: true,
+      execId: execId,
       candidates: finalCandidates,
       stats: {
         totalCandidates: finalCandidates.length,
@@ -194,7 +197,9 @@ function api_getDocumentsCenterData(filtersJson) {
       }
     };
     
-    Logger.log("DocumentsCenter: returning " + finalCandidates.length + " candidates");
+    Logger.log("[" + execId + "] DocumentsCenter: finalCandidates.length = " + finalCandidates.length);
+    Logger.log("[" + execId + "] DocumentsCenter: RESULT candidates.length = " + result.candidates.length);
+    Logger.log("[" + execId + "] DocumentsCenter: returning result = " + JSON.stringify(result).substring(0, 500));
     return result;
   } catch (e) {
     Logger.log("Error in api_getDocumentsCenterData: " + e.message + "\n" + e.stack);
