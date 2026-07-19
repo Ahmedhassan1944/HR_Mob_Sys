@@ -3358,12 +3358,6 @@
       </div>
     </div>
 
-    <!-- Temporary debug banner — remove after fixing -->
-    <div style="background:#fffbe6;border:1px solid #ffe58f;padding:8px 12px;border-radius:6px;margin-bottom:var(--sp-3);font-size:.8rem;color:#614700;">
-      <strong>Debug:</strong> ExecID = <span id="dc-debug-execid">?</span> |
-      Candidates loaded = <span id="dc-debug-count">?</span> |
-      GAS live = <span id="dc-debug-live">?</span>
-    </div>
 
     <!-- Stats Row -->
     <div id="dc-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:var(--sp-3);margin-bottom:var(--sp-4);">
@@ -3441,15 +3435,13 @@
               <th style="padding:10px 12px;width:36px;"></th>
               <th style="padding:10px 12px;">Candidate</th>
               <th style="padding:10px 12px;">Status</th>
-              <th style="padding:10px 12px;">Department</th>
-              <th style="padding:10px 12px;">Nationality</th>
               <th style="padding:10px 12px;text-align:center;">📄 Available</th>
               <th style="padding:10px 12px;text-align:center;">⚠️ Missing</th>
               <th style="padding:10px 12px;text-align:center;">Actions</th>
             </tr>
           </thead>
           <tbody id="dc-tbody">
-            <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary);">Loading…</td></tr>
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-secondary);">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -3502,7 +3494,7 @@
         Views._dcRender();
       } catch(e) {
         console.error('Documents Center load error:', e);
-        if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--danger);">Error loading candidates: ${e.message}<br><button class="btn btn--primary btn--sm" onclick="Views._dcLoad()" style="margin-top:12px;">Retry</button></td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--danger);">Error loading candidates: ${e.message}<br><button class="btn btn--primary btn--sm" onclick="Views._dcLoad()" style="margin-top:12px;">Retry</button></td></tr>`;
         Toast.show('Failed to load Documents Center: ' + e.message, 'error');
       }
     },
@@ -3609,7 +3601,7 @@
           ? `<div style="font-size:.85rem;margin-top:8px;color:var(--text-secondary);">Active filters: ${activeFilters.join(' · ')}</div>`
           : `<div style="font-size:.85rem;margin-top:8px;color:var(--text-secondary);">No active filters. The candidate list from the server is empty.</div>`;
 
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary);">
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-secondary);">
           <div style="font-weight:600;">No candidates match the current filters.</div>
           ${filterMsg}
           <button class="btn btn--outline btn--sm" onclick="Views._dcClearFilters()" style="margin-top:12px;">Clear all filters</button>
@@ -3636,13 +3628,29 @@
           <td style="padding:10px 12px;">
             <span style="font-size:.75rem;font-weight:600;color:${statusColor};white-space:nowrap;">${c.status}</span>
           </td>
-          <td style="padding:10px 12px;font-size:.82rem;">${c.department || '—'}</td>
-          <td style="padding:10px 12px;font-size:.82rem;">${c.nationality || '—'}</td>
           <td style="padding:10px 12px;text-align:center;">
-            <span style="color:var(--success);font-weight:700;">${c.availableCount}</span>
+            <span class="doc-count doc-count--available">
+              ${c.availableCount}
+              <span class="doc-count__tooltip doc-count__tooltip--available">
+                <span class="doc-count__tooltip-list">
+                  ${c.availableCount > 0
+                    ? Object.entries(c.docSummary || {}).filter(([,s]) => s === 'Available').map(([type]) => `<span class="doc-count__tooltip-item">${escHtml(type)}</span>`).join('')
+                    : '<span class="doc-count__tooltip-item">No available documents</span>'}
+                </span>
+              </span>
+            </span>
           </td>
           <td style="padding:10px 12px;text-align:center;">
-            <span style="color:${c.missingCount > 0 ? 'var(--warning,#f59e0b)' : 'var(--text-tertiary)'};font-weight:700;">${c.missingCount}</span>
+            <span class="doc-count doc-count--missing">
+              ${c.missingCount}
+              <span class="doc-count__tooltip doc-count__tooltip--missing">
+                <span class="doc-count__tooltip-list">
+                  ${c.missingCount > 0
+                    ? Object.entries(c.docSummary || {}).filter(([,s]) => s === 'Missing').map(([type]) => `<span class="doc-count__tooltip-item">${escHtml(type)}</span>`).join('')
+                    : '<span class="doc-count__tooltip-item">No missing documents</span>'}
+                </span>
+              </span>
+            </span>
           </td>
           <td style="padding:10px 12px;text-align:center;">
             <button class="btn btn--outline btn--sm" onclick="Views._dcPreviewMenu('${c.candidateId}')">👁 Preview</button>

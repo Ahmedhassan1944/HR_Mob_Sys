@@ -599,6 +599,77 @@
     border: 1px solid rgba(16, 124, 16, .15);
   }
 
+  /* ── Document Count Hover Tooltip ─────────────────────────────────── */
+  .doc-count {
+    position: relative;
+    display: inline-block;
+    font-weight: 700;
+    cursor: help;
+  }
+
+  .doc-count--available { color: var(--success); }
+  .doc-count--missing   { color: var(--danger); }
+
+  .doc-count__tooltip {
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-surface, #ffffff);
+    color: var(--text-primary, #1a1a1a);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: var(--radius, 8px);
+    padding: 8px 12px;
+    font-size: .75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,.12);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .15s, visibility .15s;
+    pointer-events: none;
+    max-width: 260px;
+  }
+
+  .doc-count__tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--border, #e2e8f0) transparent transparent transparent;
+  }
+
+  .doc-count:hover .doc-count__tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .doc-count__tooltip-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    white-space: normal;
+    max-width: 240px;
+  }
+
+  .doc-count__tooltip-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .doc-count__tooltip-item::before {
+    content: '•';
+    font-weight: 700;
+  }
+
+  .doc-count__tooltip--available .doc-count__tooltip-item::before { color: var(--success); }
+  .doc-count__tooltip--missing .doc-count__tooltip-item::before   { color: var(--danger); }
+
   /* ── Quick Filters & Filter Panel ──────────────────────────────── */
   .quick-filters {
     display: flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap;
