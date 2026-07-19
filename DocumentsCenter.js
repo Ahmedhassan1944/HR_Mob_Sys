@@ -191,10 +191,10 @@ function api_getDocumentsCenterData(filtersJson) {
       }
     };
     
-    return JSON.stringify(result);
+    return result;
   } catch (e) {
     Logger.log("Error in api_getDocumentsCenterData: " + e.message);
-    return JSON.stringify({ success: false, error: e.message });
+    return { success: false, error: e.message };
   }
 }
 
@@ -288,7 +288,7 @@ function api_batchDownloadZip(candidateIdsJson, docTypesJson) {
     }
     
     if (blobs.length === 0) {
-      return JSON.stringify({ success: false, error: "No files found for the selected candidates and document types." });
+      return { success: false, error: "No files found for the selected candidates and document types." };
     }
     
     var dateStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
@@ -296,17 +296,17 @@ function api_batchDownloadZip(candidateIdsJson, docTypesJson) {
     var zip = Utilities.zip(blobs, zipName);
     var base64 = Utilities.base64Encode(zip.getBytes());
     
-    return JSON.stringify({
+    return {
       success: true,
       filename: zipName,
       base64: base64,
       fileCount: blobs.length,
       candidateCount: Object.keys(uniqueCandidatesFound).length
-    });
+    };
     
   } catch (e) {
     Logger.log("Error in api_batchDownloadZip: " + e.message);
-    return JSON.stringify({ success: false, error: e.message });
+    return { success: false, error: e.message };
   }
 }
 
@@ -361,7 +361,7 @@ function api_getDocumentPreviewInfo(candidateId, docType) {
     }
     
     if (!bestRow) {
-      return JSON.stringify({ success: false, error: "Document not found." });
+      return { success: false, error: "Document not found." };
     }
     
     var fileUrl = bestRow[dUrlIdx];
@@ -375,17 +375,17 @@ function api_getDocumentPreviewInfo(candidateId, docType) {
     var file = DriveApp.getFileById(fileId);
     var mimeType = file.getMimeType();
     
-    return JSON.stringify({
+    return {
       success: true,
       fileUrl: "https://drive.google.com/file/d/" + fileId + "/preview",
       fileName: fileName,
       mimeType: mimeType,
       candidateName: candidateName
-    });
+    };
     
   } catch (e) {
     Logger.log("Error in api_getDocumentPreviewInfo: " + e.message);
-    return JSON.stringify({ success: false, error: e.message });
+    return { success: false, error: e.message };
   }
 }
 
@@ -434,7 +434,7 @@ function api_getDocumentsCenterFilterOptions() {
       "Visa Pending", "Visa Completed", "Mobilized", "Closed"
     ];
     
-    return JSON.stringify({
+    return {
       success: true,
       statuses: allStatuses,
       departments: Object.keys(uniqueDepts).sort(),
@@ -442,10 +442,10 @@ function api_getDocumentsCenterFilterOptions() {
       positions: Object.keys(uniquePositions).sort(),
       coordinators: Object.keys(uniqueCoords).sort(),
       batchNumbers: Object.keys(uniqueBatches).sort()
-    });
+    };
     
   } catch (e) {
     Logger.log("Error in api_getDocumentsCenterFilterOptions: " + e.message);
-    return JSON.stringify({ success: false, error: e.message });
+    return { success: false, error: e.message };
   }
 }
