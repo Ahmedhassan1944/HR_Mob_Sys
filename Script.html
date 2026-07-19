@@ -235,7 +235,7 @@
           list = list.filter(c => filters.nationality.includes(c.nationality));
         }
         const docSummary = {};
-        ['Passport','Photo','Academic Certificate','Medical Examination','Medical Analysis','Visa','CV','Offer Letter','Employment Contract','ID Card'].forEach(t => docSummary[t] = 'Missing');
+        ['Passport','Photo','Academic Certificate','Medical Examination','Medical Analysis','Visa','CV'].forEach(t => docSummary[t] = 'Missing');
         list.forEach(c => c.docSummary = { ...docSummary });
         return {
           success: true,
@@ -3409,7 +3409,7 @@
     <div class="table-card" style="margin-bottom:var(--sp-3);padding:var(--sp-3);">
       <div style="font-size:.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:var(--sp-2);">SELECT DOCUMENT TYPES TO DOWNLOAD</div>
       <div id="dc-doctype-selector" style="display:flex;gap:var(--sp-2);flex-wrap:wrap;">
-        ${['Passport','Photo','Academic Certificate','Medical Examination','Medical Analysis','Visa','CV','Offer Letter','Employment Contract','ID Card'].map(t => `
+        ${['Passport','Photo','Academic Certificate','Medical Examination','Medical Analysis','Visa','CV'].map(t => `
           <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:6px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;transition:all .15s;" class="dc-doctype-chip">
             <input type="checkbox" class="dc-doctype-check" value="${t}" onchange="Views._dcUpdateDownloadBtn()">
             <span>${t}</span>

@@ -135,7 +135,7 @@ function api_getDocumentsCenterData(filtersJson) {
 
     var docTypesList = [
       'Passport', 'Photo', 'Academic Certificate', 'Medical Examination', 
-      'Medical Analysis', 'Visa', 'CV', 'Offer Letter', 'Employment Contract', 'ID Card'
+      'Medical Analysis', 'Visa', 'CV'
     ];
     
     var totalAvailable = 0;
