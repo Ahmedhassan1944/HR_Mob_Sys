@@ -670,6 +670,26 @@
   .doc-count__tooltip--available .doc-count__tooltip-item::before { color: var(--success); }
   .doc-count__tooltip--missing .doc-count__tooltip-item::before   { color: var(--danger); }
 
+  /* ── Sortable Table Headers ─────────────────────────────────────────── */
+  .sort-indicator {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: .65rem;
+    color: var(--text-tertiary, #94a3b8);
+    min-width: 10px;
+  }
+
+  .sort-indicator--asc::after  { content: '▲'; }
+  .sort-indicator--desc::after { content: '▼'; }
+
+  th[onclick*="_dcSort"] {
+    transition: background-color .15s;
+  }
+
+  th[onclick*="_dcSort"]:hover {
+    background-color: var(--border, #e2e8f0);
+  }
+
   /* ── Quick Filters & Filter Panel ──────────────────────────────── */
   .quick-filters {
     display: flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap;
