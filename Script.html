@@ -3341,12 +3341,12 @@
     <div class="table-card" style="margin-bottom:var(--sp-3);padding:var(--sp-3);">
       <div style="font-size:.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:var(--sp-2);">SELECT DOCUMENT TYPES TO DOWNLOAD</div>
       <div id="dc-doctype-selector" style="display:flex;gap:var(--sp-2);flex-wrap:wrap;">
-        \${['Passport','Photo','Academic Certificate','Medical Examination','Medical Analysis','Visa','CV','Offer Letter','Employment Contract','ID Card'].map(t => \`
+        ${['Passport','Photo','Academic Certificate','Medical Examination','Medical Analysis','Visa','CV','Offer Letter','Employment Contract','ID Card'].map(t => `
           <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:6px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;transition:all .15s;" class="dc-doctype-chip">
-            <input type="checkbox" class="dc-doctype-check" value="\${t}" onchange="Views._dcUpdateDownloadBtn()">
-            <span>\${t}</span>
+            <input type="checkbox" class="dc-doctype-check" value="${t}" onchange="Views._dcUpdateDownloadBtn()">
+            <span>${t}</span>
           </label>
-        \`).join('')}
+        `).join('')}
       </div>
       <div style="margin-top:var(--sp-2);display:flex;gap:var(--sp-2);">
         <button class="btn btn--outline btn--sm" onclick="Views._dcSelectAllDocTypes()">Select All</button>
@@ -3386,7 +3386,7 @@
         </table>
       </div>
     </div>
-    \`;
+    `;
 
       // Load data if not already loaded
       Views._dcLoad();
@@ -3408,7 +3408,7 @@
         Views._dcRender();
       } catch(e) {
         const tbody = document.getElementById('dc-tbody');
-        if (tbody) tbody.innerHTML = \`<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--danger);">Error loading data: \${e.message}</td></tr>\`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--danger);">Error loading data: ${e.message}</td></tr>`;
       }
     },
 
@@ -3436,7 +3436,7 @@
         if (status && c.status !== status) return false;
         if (dept   && c.department !== dept) return false;
         if (nat    && c.nationality !== nat) return false;
-        if (search && !\`\${c.fullName} \${c.hrCode} \${c.candidateId}\`.toLowerCase().includes(search)) return false;
+        if (search && !`${c.fullName} ${c.hrCode} ${c.candidateId}`.toLowerCase().includes(search)) return false;
         return true;
       });
 
@@ -3469,10 +3469,10 @@
       const countEl = document.getElementById('dc-candidate-count');
       if (!tbody) return;
 
-      if (countEl) countEl.textContent = \`\${dc.filteredCandidates.length} candidates\`;
+      if (countEl) countEl.textContent = `${dc.filteredCandidates.length} candidates`;
 
       if (dc.filteredCandidates.length === 0) {
-        tbody.innerHTML = \`<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary);">No candidates match the current filters.</td></tr>\`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary);">No candidates match the current filters.</td></tr>`;
         return;
       }
 
@@ -3484,29 +3484,29 @@
       tbody.innerHTML = dc.filteredCandidates.map(c => {
         const checked = dc.selectedIds.has(c.candidateId) ? 'checked' : '';
         const statusColor = statusColors[c.status] || 'var(--text-secondary)';
-        return \`<tr style="border-bottom:1px solid var(--border);\${checked ? 'background:var(--primary-light,#eff6ff);' : ''}">
+        return `<tr style="border-bottom:1px solid var(--border);${checked ? 'background:var(--primary-light,#eff6ff);' : ''}">
           <td style="padding:10px 12px;text-align:center;">
-            <input type="checkbox" \${checked} onchange="Views._dcToggleCandidate('\${c.candidateId}', this.checked)">
+            <input type="checkbox" ${checked} onchange="Views._dcToggleCandidate('${c.candidateId}', this.checked)">
           </td>
           <td style="padding:10px 12px;">
-            <div style="font-weight:600;">\${c.fullName}</div>
-            <div style="font-size:.75rem;color:var(--text-secondary);">\${c.hrCode || c.candidateId}</div>
+            <div style="font-weight:600;">${c.fullName}</div>
+            <div style="font-size:.75rem;color:var(--text-secondary);">${c.hrCode || c.candidateId}</div>
           </td>
           <td style="padding:10px 12px;">
-            <span style="font-size:.75rem;font-weight:600;color:\${statusColor};white-space:nowrap;">\${c.status}</span>
+            <span style="font-size:.75rem;font-weight:600;color:${statusColor};white-space:nowrap;">${c.status}</span>
           </td>
-          <td style="padding:10px 12px;font-size:.82rem;">\${c.department || '—'}</td>
-          <td style="padding:10px 12px;font-size:.82rem;">\${c.nationality || '—'}</td>
+          <td style="padding:10px 12px;font-size:.82rem;">${c.department || '—'}</td>
+          <td style="padding:10px 12px;font-size:.82rem;">${c.nationality || '—'}</td>
           <td style="padding:10px 12px;text-align:center;">
-            <span style="color:var(--success);font-weight:700;">\${c.availableCount}</span>
-          </td>
-          <td style="padding:10px 12px;text-align:center;">
-            <span style="color:\${c.missingCount > 0 ? 'var(--warning,#f59e0b)' : 'var(--text-tertiary)'};font-weight:700;">\${c.missingCount}</span>
+            <span style="color:var(--success);font-weight:700;">${c.availableCount}</span>
           </td>
           <td style="padding:10px 12px;text-align:center;">
-            <button class="btn btn--outline btn--sm" onclick="Views._dcPreviewMenu('\${c.candidateId}')">👁 Preview</button>
+            <span style="color:${c.missingCount > 0 ? 'var(--warning,#f59e0b)' : 'var(--text-tertiary)'};font-weight:700;">${c.missingCount}</span>
           </td>
-        </tr>\`;
+          <td style="padding:10px 12px;text-align:center;">
+            <button class="btn btn--outline btn--sm" onclick="Views._dcPreviewMenu('${c.candidateId}')">👁 Preview</button>
+          </td>
+        </tr>`;
       }).join('');
 
       // Sync select-all checkbox
@@ -3537,7 +3537,7 @@
       const el = document.getElementById('dc-selection-label');
       if (!el) return;
       const n = dc.selectedIds.size;
-      el.textContent = n > 0 ? \`\${n} selected\` : '';
+      el.textContent = n > 0 ? `${n} selected` : '';
       const statEl = document.getElementById('dc-stat-selected');
       if (statEl) statEl.textContent = n;
     },
@@ -3604,9 +3604,9 @@
         a.href = url; a.download = res.filename; a.click();
         URL.revokeObjectURL(url);
 
-        Toast.show(\`✅ Downloaded \${res.fileCount} files for \${res.candidateCount} candidates.\`, 'success');
+        Toast.show(`✅ Downloaded ${res.fileCount} files for ${res.candidateCount} candidates.`, 'success');
       } catch(e) {
-        Toast.show(\`Download failed: \${e.message}\`, 'error');
+        Toast.show(`Download failed: ${e.message}`, 'error');
       } finally {
         btn.disabled = false;
         btn.innerHTML = origText;
@@ -3624,77 +3624,77 @@
         .map(([type]) => type);
 
       if (availableDocs.length === 0) {
-        Modal.open(\`
+        Modal.open(`
           <div class="modal__header">
-            <h2 class="modal__title">📁 \${candidate.fullName}</h2>
+            <h2 class="modal__title">📁 ${candidate.fullName}</h2>
             <button class="modal__close" onclick="Modal.close()">✕</button>
           </div>
           <div class="modal__body" style="text-align:center;padding:40px;color:var(--text-secondary);">
             No approved documents available for preview.
           </div>
-        \`);
+        `);
         return;
       }
 
-      Modal.open(\`
+      Modal.open(`
         <div class="modal__header">
-          <h2 class="modal__title">📁 \${candidate.fullName} — Select Document</h2>
+          <h2 class="modal__title">📁 ${candidate.fullName} — Select Document</h2>
           <button class="modal__close" onclick="Modal.close()">✕</button>
         </div>
         <div class="modal__body">
           <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:var(--sp-3);">Choose a document to preview:</p>
           <div style="display:flex;flex-direction:column;gap:var(--sp-2);">
-            \${availableDocs.map(type => \`
+            ${availableDocs.map(type => `
               <button class="btn btn--outline" style="justify-content:flex-start;gap:var(--sp-2);"
-                onclick="Modal.close(); Views._dcOpenPreview('\${candidateId}', '\${type}')">
-                📄 \${type}
+                onclick="Modal.close(); Views._dcOpenPreview('${candidateId}', '${type}')">
+                📄 ${type}
               </button>
-            \`).join('')}
+            `).join('')}
           </div>
         </div>
-      \`);
+      `);
     },
 
     async _dcOpenPreview(candidateId, docType) {
       // Show loading modal immediately
-      Modal.open(\`
+      Modal.open(`
         <div class="modal__header">
-          <h2 class="modal__title">👁 Preview — \${docType}</h2>
+          <h2 class="modal__title">👁 Preview — ${docType}</h2>
           <button class="modal__close" onclick="Modal.close()">✕</button>
         </div>
         <div class="modal__body" style="text-align:center;padding:40px;">
           <span style="color:var(--text-secondary);">Loading preview…</span>
         </div>
-      \`);
+      `);
 
       try {
         const res = await GAS.call('api_getDocumentPreviewInfo', candidateId, docType);
         if (!res.success) throw new Error(res.error);
 
-        Modal.open(\`
+        Modal.open(`
           <div class="modal__header">
-            <h2 class="modal__title">👁 \${res.candidateName} — \${docType}</h2>
+            <h2 class="modal__title">👁 ${res.candidateName} — ${docType}</h2>
             <button class="modal__close" onclick="Modal.close()">✕</button>
           </div>
           <div class="modal__body" style="padding:0;">
-            <iframe src="\${res.fileUrl}" style="width:100%;height:70vh;border:none;display:block;" 
-              title="\${res.fileName}"></iframe>
+            <iframe src="${res.fileUrl}" style="width:100%;height:70vh;border:none;display:block;" 
+              title="${res.fileName}"></iframe>
           </div>
           <div class="modal__footer">
-            <a href="\${res.fileUrl.replace('/preview', '/view')}" target="_blank" class="btn btn--outline btn--sm">🔗 Open in Drive</a>
+            <a href="${res.fileUrl.replace('/preview', '/view')}" target="_blank" class="btn btn--outline btn--sm">🔗 Open in Drive</a>
             <button class="btn btn--outline" onclick="Modal.close()">Close</button>
           </div>
-        \`);
+        `);
       } catch(e) {
-        Modal.open(\`
+        Modal.open(`
           <div class="modal__header">
             <h2 class="modal__title">Preview Error</h2>
             <button class="modal__close" onclick="Modal.close()">✕</button>
           </div>
           <div class="modal__body" style="text-align:center;padding:40px;color:var(--danger);">
-            \${e.message}
+            ${e.message}
           </div>
-        \`);
+        `);
       }
     }
   };
