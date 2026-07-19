@@ -14,6 +14,7 @@ function extractFileId_(url) {
  */
 function api_getDocumentsCenterData(filtersJson) {
   try {
+    Logger.log("api_getDocumentsCenterData called with filtersJson: " + (filtersJson || '{}'));
     var filters = filtersJson ? JSON.parse(filtersJson) : {};
     var ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID'));
     
@@ -193,7 +194,7 @@ function api_getDocumentsCenterData(filtersJson) {
     
     return result;
   } catch (e) {
-    Logger.log("Error in api_getDocumentsCenterData: " + e.message);
+    Logger.log("Error in api_getDocumentsCenterData: " + e.message + "\n" + e.stack);
     return { success: false, error: e.message };
   }
 }

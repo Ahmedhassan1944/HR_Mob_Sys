@@ -205,6 +205,57 @@
       if (fnName === 'api_updateCandidateStatus') return { success: true };
       if (fnName === 'api_updateCandidateDetails') return { success: true };
       if (fnName === 'api_getDocumentsByCandidate') return { success: true, data: documents.filter(d => d.CandidateID === args[0]) };
+      if (fnName === 'api_getDocumentsCenterData') {
+        const filters = args[0] ? JSON.parse(args[0]) : {};
+        let list = candidates.map(c => ({
+          candidateId: c.CandidateID,
+          fullName: c.FullName,
+          department: c.Department,
+          nationality: c.Nationality,
+          position: c.Position,
+          status: c.CurrentStatus,
+          hrCode: c.CandidateID,
+          driveFolderId: c.DriveFolderID || '',
+          batchNumber: ''
+        }));
+        const search = (filters.search || '').toLowerCase();
+        if (search) {
+          list = list.filter(c =>
+            c.fullName.toLowerCase().includes(search) ||
+            c.candidateId.toLowerCase().includes(search)
+          );
+        }
+        if (filters.status && filters.status.length) {
+          list = list.filter(c => filters.status.includes(c.status));
+        }
+        if (filters.department && filters.department.length) {
+          list = list.filter(c => filters.department.includes(c.department));
+        }
+        if (filters.nationality && filters.nationality.length) {
+          list = list.filter(c => filters.nationality.includes(c.nationality));
+        }
+        const docSummary = {};
+        ['Passport','Photo','Academic Certificate','Medical Examination','Medical Analysis','Visa','CV','Offer Letter','Employment Contract','ID Card'].forEach(t => docSummary[t] = 'Missing');
+        list.forEach(c => c.docSummary = { ...docSummary });
+        return {
+          success: true,
+          candidates: list,
+          stats: {
+            totalCandidates: list.length,
+            totalSelected: 0,
+            totalAvailableDocs: 0,
+            totalMissingDocs: list.length * 10
+          },
+          filterOptions: {
+            statuses: ["New Candidate", "Documents Requested", "Documents Under Preparing", "Pending Passport", "Pending Photo", "Pending Academic Certificate", "Pending Medical", "Booked a medical examination", "Documents Complete", "Visa Pending", "Visa Completed", "Mobilized", "Closed"],
+            departments: [...new Set(candidates.map(c => c.Department).filter(Boolean))].sort(),
+            nationalities: [...new Set(candidates.map(c => c.Nationality).filter(Boolean))].sort(),
+            positions: [...new Set(candidates.map(c => c.Position).filter(Boolean))].sort(),
+            coordinators: [],
+            batchNumbers: []
+          }
+        };
+      }
       if (fnName === 'api_reviewDocument') return { success: true };
       if (fnName === 'api_getAuditLog') return { success: true, data: logs.filter(l => l.CandidateID === args[0]) };
       if (fnName === 'api_createCandidateFolder') return { success: true, folderId: 'mock-folder', url: '#' };
@@ -3306,7 +3357,7 @@
     </div>
 
     <!-- Filter Panel -->
-    <div class="filter-panel" id="dc-filter-panel" hidden>
+    <div class="filter-panel" id="dc-filter-panel">
       <div class="filter-panel__inner">
         <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:flex-end;padding:var(--sp-3);">
           <div style="flex:1;min-width:200px;">
@@ -3395,20 +3446,24 @@
     async _dcLoad() {
       const dc = App.state.documentsCenter;
       if (dc.loaded) { Views._dcRender(); return; }
+      const tbody = document.getElementById('dc-tbody');
       try {
         const filtersJson = JSON.stringify({ status: [], department: [], nationality: [], position: [], search: '' });
         const res = await GAS.call('api_getDocumentsCenterData', filtersJson);
-        if (!res.success) throw new Error(res.error);
-        dc.candidates = res.candidates;
-        dc.filteredCandidates = [...res.candidates];
-        dc.filterOptions = res.filterOptions;
+        if (!res || !res.success) {
+          throw new Error((res && res.error) || 'No response from server.');
+        }
+        dc.candidates = res.candidates || [];
+        dc.filteredCandidates = [...(res.candidates || [])];
+        dc.filterOptions = res.filterOptions || {};
         dc.loaded = true;
         Views._dcPopulateFilterDropdowns();
-        Views._dcUpdateStats(res.stats);
+        Views._dcUpdateStats(res.stats || {});
         Views._dcRender();
       } catch(e) {
-        const tbody = document.getElementById('dc-tbody');
-        if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--danger);">Error loading data: ${e.message}</td></tr>`;
+        console.error('Documents Center load error:', e);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--danger);">Error loading candidates: ${e.message}<br><button class="btn btn--primary btn--sm" onclick="Views._dcLoad()" style="margin-top:12px;">Retry</button></td></tr>`;
+        Toast.show('Failed to load Documents Center: ' + e.message, 'error');
       }
     },
 
