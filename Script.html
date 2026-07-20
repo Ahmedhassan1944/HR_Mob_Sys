@@ -3945,6 +3945,11 @@
     _dcShowProgress() {
       const overlay = document.getElementById('dc-progress-overlay');
       if (!overlay) return;
+
+      // Cancel any running animation and reset state trackers
+      if (Views._dcRafId) { cancelAnimationFrame(Views._dcRafId); Views._dcRafId = null; }
+      Views._dcCurrentPercent = 0;
+
       // Reset all states
       overlay.removeAttribute('hidden');
       requestAnimationFrame(() => overlay.classList.add('is-visible'));
@@ -3973,24 +3978,64 @@
     },
 
     _dcUpdateProgressUI(prog) {
-      const fill  = document.getElementById('dc-progress-fill');
-      const pct   = document.getElementById('dc-progress-pct');
       const text  = document.getElementById('dc-progress-text');
       const found = document.getElementById('dc-stat-found');
       const dl    = document.getElementById('dc-stat-downloaded');
       const aria  = document.getElementById('dc-progress-aria');
 
-      const percent = Math.max(0, Math.min(100, prog.percent || 0));
+      const target = Math.max(0, Math.min(100, prog.percent || 0));
 
-      if (fill)  fill.style.width = percent + '%';
-      if (pct)   pct.textContent  = percent + '%';
+      // Never allow bar to go backwards
+      const safeTarget = Math.max(Views._dcCurrentPercent || 0, target);
+      Views._dcCurrentPercent = safeTarget;
+
+      // RAF-based smooth easer: move 18% of remaining gap per frame
+      Views._dcAnimateTo(safeTarget);
+
       if (text)  text.textContent = prog.message || '';
-      if (found) found.textContent = (prog.filesFound != null) ? prog.filesFound : '—';
-      if (dl)    dl.textContent    = (prog.filesDownloaded != null) ? prog.filesDownloaded : '—';
-      if (aria)  aria.setAttribute('aria-valuenow', percent);
+      if (found) found.textContent = (prog.filesFound  != null) ? prog.filesFound  : '—';
+      if (dl)    dl.textContent   = (prog.filesDownloaded != null) ? prog.filesDownloaded : '—';
+      if (aria)  aria.setAttribute('aria-valuenow', safeTarget);
+    },
+
+    // Smooth RAF animation toward a target percent.
+    // Stores the rAF handle in Views._dcRafId to avoid competing loops.
+    _dcAnimateTo(targetPct) {
+      if (Views._dcRafId) {
+        cancelAnimationFrame(Views._dcRafId);
+        Views._dcRafId = null;
+      }
+
+      const fill = document.getElementById('dc-progress-fill');
+      const pct  = document.getElementById('dc-progress-pct');
+      if (!fill) return;
+
+      const step = () => {
+        const current = parseFloat(fill.style.width) || 0;
+        const diff    = targetPct - current;
+
+        if (Math.abs(diff) < 0.3) {
+          // Close enough — snap to target
+          fill.style.width  = targetPct + '%';
+          if (pct) pct.textContent = Math.round(targetPct) + '%';
+          Views._dcRafId = null;
+          return;
+        }
+
+        const next = current + diff * 0.18; // ease: 18% of remaining gap
+        fill.style.width = next + '%';
+        if (pct) pct.textContent = Math.round(next) + '%';
+        Views._dcRafId = requestAnimationFrame(step);
+      };
+
+      Views._dcRafId = requestAnimationFrame(step);
     },
 
     _dcProgressSuccess(message) {
+      // Stop any running animation loop then snap to 100%
+      if (Views._dcRafId) { cancelAnimationFrame(Views._dcRafId); Views._dcRafId = null; }
+      Views._dcCurrentPercent = 100;
+
       const fill    = document.getElementById('dc-progress-fill');
       const pct     = document.getElementById('dc-progress-pct');
       const icon    = document.getElementById('dc-progress-icon');
@@ -4011,6 +4056,9 @@
     },
 
     _dcProgressError(message) {
+      // Stop any running animation loop
+      if (Views._dcRafId) { cancelAnimationFrame(Views._dcRafId); Views._dcRafId = null; }
+
       const icon      = document.getElementById('dc-progress-icon');
       const text      = document.getElementById('dc-progress-text');
       const errEl     = document.getElementById('dc-progress-error');

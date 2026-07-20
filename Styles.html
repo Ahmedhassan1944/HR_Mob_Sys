@@ -1636,7 +1636,7 @@ body.dark-mode .dash-export-item:hover { background: #2a2a2a; }
   border-radius: 99px;
   background: linear-gradient(90deg, var(--primary, #4f46e5) 0%, #818cf8 100%);
   width: 0%;
-  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  /* No CSS transition — motion is driven by requestAnimationFrame in _dcAnimateTo() */
   position: relative;
 }
 .dc-progress-fill::after {
