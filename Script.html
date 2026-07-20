@@ -3359,6 +3359,54 @@
       </div>
     </div>
 
+    <!-- ══════════════════ Batch Download Progress Overlay ══════════════════ -->
+    <div class="dc-progress-overlay" id="dc-progress-overlay" role="dialog" aria-modal="true" aria-label="Download progress" hidden>
+      <div class="dc-progress-panel">
+        <!-- Header -->
+        <div class="dc-progress-header">
+          <h2 class="dc-progress-title">
+            <span class="dc-progress-icon" id="dc-progress-icon">⏳</span>
+            Preparing Download
+          </h2>
+          <button class="dc-progress-cancel-btn" id="dc-progress-cancel-btn" onclick="Views._dcCancelDownload()" aria-label="Cancel download">✕ Cancel</button>
+        </div>
+        <!-- Stage message -->
+        <p class="dc-progress-text" id="dc-progress-text">Preparing your download…</p>
+        <!-- Progress bar -->
+        <div class="dc-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="dc-progress-aria">
+          <div class="dc-progress-fill" id="dc-progress-fill"></div>
+        </div>
+        <p class="dc-progress-pct" id="dc-progress-pct">0%</p>
+        <!-- Stats -->
+        <div class="dc-progress-stats">
+          <div class="dc-progress-stat">
+            <span class="dc-progress-stat__value" id="dc-stat-found">—</span>
+            <span class="dc-progress-stat__label">Files Found</span>
+          </div>
+          <div class="dc-progress-stat">
+            <span class="dc-progress-stat__value" id="dc-stat-downloaded">—</span>
+            <span class="dc-progress-stat__label">Downloaded</span>
+          </div>
+        </div>
+        <!-- Success message (shown on completion) -->
+        <div class="dc-progress-success" id="dc-progress-success" aria-live="polite">
+          ✅ <span id="dc-progress-success-msg">Download started!</span>
+        </div>
+        <!-- Error message -->
+        <div class="dc-progress-error" id="dc-progress-error" aria-live="assertive">
+          <span class="dc-progress-error__icon">⛔</span>
+          <div class="dc-progress-error__body">
+            <span class="dc-progress-error__title">Download Failed</span>
+            <span class="dc-progress-error__msg" id="dc-progress-error-msg"></span>
+          </div>
+        </div>
+        <!-- Footer close button (shown on done/error) -->
+        <div class="dc-progress-footer" id="dc-progress-footer">
+          <button class="dc-progress-close-btn" onclick="Views._dcCloseProgress()">Close</button>
+        </div>
+      </div>
+    </div>
+
 
     <!-- Stats Row -->
     <div id="dc-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:var(--sp-3);margin-bottom:var(--sp-4);">
@@ -3813,13 +3861,57 @@
       if (candidateIds.length === 0) { Toast.show('Select at least one candidate.', 'warning'); return; }
       if (docTypes.length === 0)     { Toast.show('Select at least one document type.', 'warning'); return; }
 
+      // ── Generate a unique batch ID for progress tracking ──
+      const batchId = `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+
+      // ── Show and reset Progress UI ──
+      Views._dcShowProgress();
+
       const btn = document.getElementById('dc-download-btn');
-      const origText = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = '⏳ Preparing ZIP…';
+
+      // ── Start progress polling interval (500ms) ──
+      let pollInterval = null;
+      let cancelled = false;
+
+      const stopPolling = () => {
+        if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+      };
+
+      // Store cancel flag so _dcCancelDownload can set it
+      Views._dcDownloadState = { cancelled: false, stopPolling };
+
+      const pollProgress = () => {
+        if (cancelled || (Views._dcDownloadState && Views._dcDownloadState.cancelled)) {
+          stopPolling();
+          return;
+        }
+        google.script.run
+          .withSuccessHandler(prog => {
+            if (!prog || (Views._dcDownloadState && Views._dcDownloadState.cancelled)) return;
+            Views._dcUpdateProgressUI(prog);
+          })
+          .withFailureHandler(() => { /* silently ignore polling errors */ })
+          .api_getBatchDownloadProgress(batchId);
+      };
+
+      // Small initial delay so the backend has time to write Stage 0 to cache
+      setTimeout(() => {
+        if (Views._dcDownloadState && !Views._dcDownloadState.cancelled) {
+          pollInterval = setInterval(pollProgress, 500);
+          Views._dcDownloadState.stopPolling = stopPolling;
+        }
+      }, 800);
 
       try {
-        const res = await GAS.call('api_batchDownloadZip', JSON.stringify(candidateIds), JSON.stringify(docTypes));
+        const res = await GAS.call('api_batchDownloadZip',
+          JSON.stringify(candidateIds),
+          JSON.stringify(docTypes),
+          batchId
+        );
+
+        stopPolling();
+
         if (!res.success) throw new Error(res.error);
 
         // Trigger browser download from base64
@@ -3832,14 +3924,123 @@
         a.href = url; a.download = res.filename; a.click();
         URL.revokeObjectURL(url);
 
+        // ── Show success state in Progress UI ──
+        Views._dcProgressSuccess(
+          `✅ Downloaded ${res.fileCount} file(s) for ${res.candidateCount} candidate(s).`
+        );
+
         Toast.show(`✅ Downloaded ${res.fileCount} files for ${res.candidateCount} candidates.`, 'success');
+
       } catch(e) {
-        Toast.show(`Download failed: ${e.message}`, 'error');
+        stopPolling();
+        Views._dcProgressError(e.message);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = origText;
         Views._dcUpdateDownloadBtn();
       }
+    },
+
+    // ── Progress UI helpers ───────────────────────────────────────────────────
+
+    _dcShowProgress() {
+      const overlay = document.getElementById('dc-progress-overlay');
+      if (!overlay) return;
+      // Reset all states
+      overlay.removeAttribute('hidden');
+      requestAnimationFrame(() => overlay.classList.add('is-visible'));
+
+      const fill    = document.getElementById('dc-progress-fill');
+      const pct     = document.getElementById('dc-progress-pct');
+      const icon    = document.getElementById('dc-progress-icon');
+      const text    = document.getElementById('dc-progress-text');
+      const found   = document.getElementById('dc-stat-found');
+      const dl      = document.getElementById('dc-stat-downloaded');
+      const success = document.getElementById('dc-progress-success');
+      const err     = document.getElementById('dc-progress-error');
+      const footer  = document.getElementById('dc-progress-footer');
+      const cancelBtn = document.getElementById('dc-progress-cancel-btn');
+
+      if (fill)    { fill.style.width = '0%'; fill.classList.remove('is-complete'); }
+      if (pct)     { pct.textContent = '0%'; pct.classList.remove('is-complete'); }
+      if (icon)    { icon.textContent = '⏳'; icon.classList.remove('is-done'); }
+      if (text)    text.textContent = 'Preparing your download…';
+      if (found)   found.textContent = '—';
+      if (dl)      dl.textContent = '—';
+      if (success) success.classList.remove('is-visible');
+      if (err)     err.classList.remove('is-visible');
+      if (footer)  footer.classList.remove('is-visible');
+      if (cancelBtn) { cancelBtn.style.display = ''; }
+    },
+
+    _dcUpdateProgressUI(prog) {
+      const fill  = document.getElementById('dc-progress-fill');
+      const pct   = document.getElementById('dc-progress-pct');
+      const text  = document.getElementById('dc-progress-text');
+      const found = document.getElementById('dc-stat-found');
+      const dl    = document.getElementById('dc-stat-downloaded');
+      const aria  = document.getElementById('dc-progress-aria');
+
+      const percent = Math.max(0, Math.min(100, prog.percent || 0));
+
+      if (fill)  fill.style.width = percent + '%';
+      if (pct)   pct.textContent  = percent + '%';
+      if (text)  text.textContent = prog.message || '';
+      if (found) found.textContent = (prog.filesFound != null) ? prog.filesFound : '—';
+      if (dl)    dl.textContent    = (prog.filesDownloaded != null) ? prog.filesDownloaded : '—';
+      if (aria)  aria.setAttribute('aria-valuenow', percent);
+    },
+
+    _dcProgressSuccess(message) {
+      const fill    = document.getElementById('dc-progress-fill');
+      const pct     = document.getElementById('dc-progress-pct');
+      const icon    = document.getElementById('dc-progress-icon');
+      const text    = document.getElementById('dc-progress-text');
+      const success = document.getElementById('dc-progress-success');
+      const successMsg = document.getElementById('dc-progress-success-msg');
+      const footer  = document.getElementById('dc-progress-footer');
+      const cancelBtn = document.getElementById('dc-progress-cancel-btn');
+
+      if (fill)  { fill.style.width = '100%'; fill.classList.add('is-complete'); }
+      if (pct)   { pct.textContent = '100%'; pct.classList.add('is-complete'); }
+      if (icon)  { icon.textContent = '✅'; icon.classList.add('is-done'); }
+      if (text)  text.textContent = 'Download started!';
+      if (successMsg) successMsg.textContent = message;
+      if (success) success.classList.add('is-visible');
+      if (footer)  footer.classList.add('is-visible');
+      if (cancelBtn) cancelBtn.style.display = 'none';
+    },
+
+    _dcProgressError(message) {
+      const icon      = document.getElementById('dc-progress-icon');
+      const text      = document.getElementById('dc-progress-text');
+      const errEl     = document.getElementById('dc-progress-error');
+      const errMsg    = document.getElementById('dc-progress-error-msg');
+      const footer    = document.getElementById('dc-progress-footer');
+      const cancelBtn = document.getElementById('dc-progress-cancel-btn');
+
+      if (icon)   { icon.textContent = '⛔'; icon.classList.add('is-done'); }
+      if (text)   text.textContent = 'Download failed.';
+      if (errMsg) errMsg.textContent = message;
+      if (errEl)  errEl.classList.add('is-visible');
+      if (footer) footer.classList.add('is-visible');
+      if (cancelBtn) cancelBtn.style.display = 'none';
+    },
+
+    _dcCloseProgress() {
+      const overlay = document.getElementById('dc-progress-overlay');
+      if (!overlay) return;
+      overlay.classList.remove('is-visible');
+      setTimeout(() => overlay.setAttribute('hidden', ''), 260);
+    },
+
+    _dcCancelDownload() {
+      // Signal the polling loop to stop
+      if (Views._dcDownloadState) {
+        Views._dcDownloadState.cancelled = true;
+        if (Views._dcDownloadState.stopPolling) Views._dcDownloadState.stopPolling();
+      }
+      Views._dcCloseProgress();
+      Views._dcUpdateDownloadBtn();
     },
 
     async _dcPreviewMenu(candidateId) {
