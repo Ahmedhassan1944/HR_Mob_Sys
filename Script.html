@@ -711,15 +711,17 @@
 
           // ── Section 1: Status-based cards ──────────────────────────────
           const allCands = candsRes.data || [];
-          const internalCount = allCands.filter(c => String(c.Recruitment_Type || '').trim() === 'Internal').length;
-          const externalCount = allCands.filter(c => String(c.Recruitment_Type || '').trim() === 'External').length;
-          const batch1Count = allCands.filter(c => Views._normBatch(Views._getBatchValue(c)) === Views._normBatch('Batch 1')).length;
-          const batch2Count = allCands.filter(c => Views._normBatch(Views._getBatchValue(c)) === Views._normBatch('Batch 2')).length;
-          const batch3Count = allCands.filter(c => Views._normBatch(Views._getBatchValue(c)) === Views._normBatch('Batch 3')).length;
+          const activeCands = allCands.filter(c => String(c.CurrentStatus || '').trim() !== 'Closed');
+          
+          const internalCount = activeCands.filter(c => String(c.Recruitment_Type || '').trim() === 'Internal').length;
+          const externalCount = activeCands.filter(c => String(c.Recruitment_Type || '').trim() === 'External').length;
+          const batch1Count = activeCands.filter(c => Views._normBatch(Views._getBatchValue(c)) === Views._normBatch('Batch 1')).length;
+          const batch2Count = activeCands.filter(c => Views._normBatch(Views._getBatchValue(c)) === Views._normBatch('Batch 2')).length;
+          const batch3Count = activeCands.filter(c => Views._normBatch(Views._getBatchValue(c)) === Views._normBatch('Batch 3')).length;
+          const batch4Count = activeCands.filter(c => Views._normBatch(Views._getBatchValue(c)) === Views._normBatch('Batch 4')).length;
 
           document.getElementById('kpi-grid-status').innerHTML = [
             Views._kpiCard('Active Cases', k.activeCount ?? '--', '🏗️', 'blue', 'All non-closed cases', null),
-            Views._kpiCard('Missing Documents', k.missingDocs ?? '--', '❗', 'orange', 'Incomplete document sets', null),
             Views._kpiCard('Pending Medical', k.pendingMedical ?? '--', '🩺', 'orange', 'Awaiting medical docs', { type: 'status', value: 'Pending Medical' }),
             Views._kpiCard('Booked Medical Exam', k.bookedMedical ?? '--', '📅', 'blue', 'Medical exam appointment set', { type: 'status', value: 'Booked a medical examination' }),
             Views._kpiCard('Docs Under Preparing', k.docsUnderPreparing ?? '--', '📝', 'orange', 'Documents being prepared', { type: 'status', value: 'Documents Under Preparing' }),
@@ -731,6 +733,7 @@
             Views._kpiCard('Batch 1', batch1Count, '1️⃣', 'blue',   'Candidates in Batch 1', { type: 'batchNumber', value: 'Batch 1' }),
             Views._kpiCard('Batch 2', batch2Count, '2️⃣', 'purple', 'Candidates in Batch 2', { type: 'batchNumber', value: 'Batch 2' }),
             Views._kpiCard('Batch 3', batch3Count, '3️⃣', 'green',  'Candidates in Batch 3', { type: 'batchNumber', value: 'Batch 3' }),
+            Views._kpiCard('Batch 4', batch4Count, '4️⃣', 'teal', 'Candidates in Batch 4', { type: 'batchNumber', value: 'Batch 4' }),
           ].join('');
 
           // ── Section 2: HAS document cards ──────────────────────────────
