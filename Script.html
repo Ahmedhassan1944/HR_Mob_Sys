@@ -952,6 +952,20 @@
         return matchQ && matchS && matchExcl && matchD && matchDoc && matchCompletion;
       });
 
+      // ✅ Store filtered result
+      App.setState({ filteredCandidates: data });
+
+      // Store active filters state for export usage
+      Views._dashActiveFilters = {
+        query,
+        deptFilter,
+        completionMin,
+        statusFilters,
+        excludeStatusFilters,
+        docFilters,
+        cardFilters: Array.from(Views._dashboardSelectedCards || [])
+      };
+
       Views._saveDashboardFilterState();
       Views._renderDashboardTable(data);
       Views._dashUpdateClearButton();
@@ -1154,12 +1168,19 @@
       const menu = document.getElementById('dash-export-menu');
       if (menu) menu.style.display = 'none';
 
+      // ✅ Ensure active filters are applied before exporting
+      if (Views._applyDashboardAllFilters) {
+        Views._applyDashboardAllFilters();
+      }
+
       const _all = App.state.candidates || [];
       const _filtered = App.state.filteredCandidates || [];
-      const data = (_filtered.length > 0 && _filtered.length < _all.length)
+      
+      const data = (_filtered && _filtered.length < _all.length)
         ? _filtered
         : _all;
-      if (!data || !data.length) { Toast.warning('No candidates loaded yet.'); return; }
+
+      if (!data || !data.length) { Toast.warning('No candidates match the applied filters.'); return; }
       const isFiltered = data.length < _all.length;
 
       const { docCompleteness } = App.state;
