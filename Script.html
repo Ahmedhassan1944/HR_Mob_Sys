@@ -1183,24 +1183,23 @@
       if (!data || !data.length) { Toast.warning('No candidates match the applied filters.'); return; }
       const isFiltered = data.length < _all.length;
 
-      const { docCompleteness } = App.state;
       const headers = [
-        'CandidateID', 'FullName', 'Position', 'Department',
-        'Email', 'Phone', 'Nationality', 'OfferSalary',
-        'CurrentStatus', 'CreatedAt', 'UpdatedAt',
-        'DocCompleteness%', 'PresentDocs', 'MissingDocs'
+        'FullName',
+        'Position',
+        'Notes',
+        'HR_Code',
+        'Recruitment_Type',
+        'Batch_Number'
       ];
       const esc = v => '"' + (v || '').toString().replace(/"/g, '""') + '"';
       const rows = data.map(c => {
-        const comp = docCompleteness[c.CandidateID];
-        const pct = comp ? comp.pct : '';
-        const present = comp ? comp.presentDocs.join('; ') : '';
-        const missing = comp ? comp.missingDocs.join('; ') : '';
         return [
-          esc(c.CandidateID), esc(c.FullName), esc(c.Position), esc(c.Department),
-          esc(c.Email), esc(c.Phone), esc(c.Nationality), esc(c.OfferSalary),
-          esc(c.CurrentStatus), esc(c.CreatedAt), esc(c.UpdatedAt),
-          esc(pct), esc(present), esc(missing)
+          esc(c.FullName),
+          esc(c.Position),
+          esc(c.Notes),
+          esc(c.HR_Code),
+          esc(c.Recruitment_Type),
+          esc(Views._getBatchValue(c) || '')
         ].join(',');
       });
       const csv = '\uFEFF' + [headers.join(',')].concat(rows).join('\n');
