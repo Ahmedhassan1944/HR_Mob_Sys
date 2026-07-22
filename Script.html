@@ -889,6 +889,9 @@
 
           if (Views._dashboardSelectedCards && Views._dashboardSelectedCards.size > 0) {
             Views._applyDashboardCardFilter();
+            if (Views._selectedBatchFilter) {
+              Views._renderKpiSectionsWithBatchFilter();
+            }
           } else {
             Views._applyDashboardAllFilters();
           }
@@ -1774,6 +1777,12 @@
 
       // ── Restore KPI card selected set ──
       Views._dashboardSelectedCards = new Set(Array.isArray(saved.selectedCards) ? saved.selectedCards : []);
+      const batchKey = Array.from(Views._dashboardSelectedCards).find(k => k.startsWith('batchNumber::'));
+      if (batchKey) {
+        Views._selectedBatchFilter = batchKey.split('::')[1];
+      } else {
+        Views._selectedBatchFilter = null;
+      }
       // Highlight selected cards in the DOM
       (saved.selectedCards || []).forEach(key => {
         const [type, value] = key.split('::');
