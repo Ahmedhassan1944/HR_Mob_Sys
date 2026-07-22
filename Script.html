@@ -778,6 +778,12 @@
           App.setState({ candidates: candsRes.data, filteredCandidates: candsRes.data });
           Views._renderDashboardTable(candsRes.data);
           Views._restoreDashboardFilterState();
+
+          if (Views._dashboardSelectedCards && Views._dashboardSelectedCards.size > 0) {
+            Views._applyDashboardCardFilter();
+          } else {
+            Views._applyDashboardAllFilters();
+          }
         }
       } catch (err) {
         Toast.error('Failed to load dashboard data.');
@@ -898,6 +904,7 @@
         if (type === 'missingDoc')      return `Missing: ${val}`;
         if (type === 'recruitmentType') return `Type: ${val}`;
         if (type === 'batchNumber')     return `Batch: ${val}`;
+        if (type === 'calendar')        return `Calendar: ${val}`;
         return val;
       }).join(' + ');
 
@@ -1652,7 +1659,13 @@
       if (Views._dashboardSelectedCards.size > 0) {
         const labels = Array.from(Views._dashboardSelectedCards).map(f => {
           const [type, val] = f.split('::');
-          return type === 'status' ? `Status: ${val}` : type === 'hasDoc' ? `Has: ${val}` : `Missing: ${val}`;
+          if (type === 'status')          return `Status: ${val}`;
+          if (type === 'hasDoc')          return `Has: ${val}`;
+          if (type === 'missingDoc')      return `Missing: ${val}`;
+          if (type === 'recruitmentType') return `Type: ${val}`;
+          if (type === 'batchNumber')     return `Batch: ${val}`;
+          if (type === 'calendar')        return `Calendar: ${val}`;
+          return val;
         }).join(' + ');
         const hint = document.getElementById('dashboard-filter-hint');
         if (hint) {
