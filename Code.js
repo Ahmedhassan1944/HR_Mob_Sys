@@ -94,7 +94,11 @@ function api_getDashboardData() {
     if (!docsRes.success) throw new Error(docsRes.error);
     const eventsRes = api_getAllUpcomingEvents();
     if (!eventsRes.success) throw new Error(eventsRes.error);
-    const candidates = candsRes.data;
+    const allCandidates = candsRes.data;
+    const candidates = allCandidates.filter(c => {
+      const status = (c.CurrentStatus || '').trim();
+      return status !== 'Closed';
+    });
     const allDocs    = docsRes.data;
     const activeEvents = eventsRes.data;
     // ── Status-based counters ──────────────────────────────────────

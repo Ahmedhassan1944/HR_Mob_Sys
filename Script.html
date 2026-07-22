@@ -510,17 +510,17 @@
       </div>
 
       <!-- KPI SECTIONS -->
-      <div class="kpi-section-label">📊 Pipeline Overview</div>
+      <div class="kpi-section-label">📊 Pipeline Overview <span style="font-size:0.85em; opacity:0.8; font-weight:normal">(excludes Closed)</span></div>
       <div class="kpi-grid" id="kpi-grid-status">
         ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map(() => `<div class="kpi-card"><div class="skeleton" style="height:80px"></div></div>`).join('')}
       </div>
 
-      <div class="kpi-section-label" style="margin-top:var(--sp-5)">✅ Candidates WITH Document</div>
+      <div class="kpi-section-label" style="margin-top:var(--sp-5)">✅ Candidates WITH Document <span style="font-size:0.85em; opacity:0.8; font-weight:normal">(excludes Closed)</span></div>
       <div class="kpi-grid" id="kpi-grid-has">
         ${[1, 2, 3, 4, 5, 6, 7].map(() => `<div class="kpi-card"><div class="skeleton" style="height:80px"></div></div>`).join('')}
       </div>
 
-      <div class="kpi-section-label" style="margin-top:var(--sp-5)">❌ Candidates MISSING Document</div>
+      <div class="kpi-section-label" style="margin-top:var(--sp-5)">❌ Candidates MISSING Document <span style="font-size:0.85em; opacity:0.8; font-weight:normal">(excludes Closed)</span></div>
       <div class="kpi-grid" id="kpi-grid-missing">
         ${[1, 2, 3, 4, 5, 6, 7].map(() => `<div class="kpi-card"><div class="skeleton" style="height:80px"></div></div>`).join('')}
       </div>
