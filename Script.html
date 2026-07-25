@@ -491,6 +491,39 @@
 
   const Views = {
 
+    // ── EXPORT CONFIG — Column Definitions ──────────────────────────
+    _EXPORT_COLUMNS: [
+      { key: 'FullName',        label: 'Full Name',          getValue: (c)       => c.FullName        || '' },
+      { key: 'Position',        label: 'Position',           getValue: (c)       => c.Position        || '' },
+      { key: 'Department',      label: 'Department',         getValue: (c)       => c.Department      || '' },
+      { key: 'Nationality',     label: 'Nationality',        getValue: (c)       => c.Nationality     || '' },
+      { key: 'Email',           label: 'Email',              getValue: (c)       => c.Email           || '' },
+      { key: 'Phone',           label: 'Phone',              getValue: (c)       => c.Phone           || '' },
+      { key: 'OfferSalary',     label: 'Offer Salary',       getValue: (c)       => c.OfferSalary     || '' },
+      { key: 'CurrentStatus',   label: 'Status',             getValue: (c)       => c.CurrentStatus   || '' },
+      { key: 'HR_Code',         label: 'HR Code',            getValue: (c)       => c.HR_Code         || '' },
+      { key: 'Recruitment_Type',label: 'Recruitment Type',   getValue: (c)       => c.Recruitment_Type|| '' },
+      { key: 'Batch_Number',    label: 'Batch Number',       getValue: (c)       => Views._getBatchValue(c) || '' },
+      { key: 'Notes',           label: 'Notes',              getValue: (c)       => c.Notes           || '' },
+      { key: 'CandidateID',     label: 'Candidate ID',       getValue: (c)       => c.CandidateID     || '' },
+      { key: 'CreatedAt',       label: 'Created At',         getValue: (c)       => c.CreatedAt       || '' },
+      { key: 'UpdatedAt',       label: 'Updated At',         getValue: (c)       => c.UpdatedAt       || '' },
+      { key: 'DocCompleteness', label: 'Doc Completeness %', getValue: (c, state) => { const comp = (state.docCompleteness || {})[c.CandidateID]; return comp ? comp.pct : ''; } },
+      { key: 'PresentDocs',     label: 'Present Documents',  getValue: (c, state) => { const comp = (state.docCompleteness || {})[c.CandidateID]; return comp ? comp.presentDocs.join('; ') : ''; } },
+      { key: 'MissingDocs',     label: 'Missing Documents',  getValue: (c, state) => { const comp = (state.docCompleteness || {})[c.CandidateID]; return comp ? comp.missingDocs.join('; ') : ''; } }
+    ],
+
+    _EXPORT_DEFAULTS_DASHBOARD: ['FullName', 'Position', 'Notes', 'HR_Code', 'Recruitment_Type', 'Batch_Number'],
+
+    _EXPORT_DEFAULTS_CANDIDATES: [
+      'FullName', 'Position', 'Department', 'CurrentStatus',
+      'Email', 'Phone', 'Nationality', 'OfferSalary',
+      'CandidateID', 'CreatedAt', 'UpdatedAt',
+      'DocCompleteness', 'PresentDocs', 'MissingDocs'
+    ],
+
+    _ecState: { data: [], filename: '', order: [], checked: new Set() },
+
     // ── DASHBOARD ──────────────────────────────
     dashboard(container) {
       container.innerHTML = `
@@ -1304,55 +1337,16 @@
       const menu = document.getElementById('dash-export-menu');
       if (menu) menu.style.display = 'none';
 
-      // ✅ Ensure active filters are applied before exporting
-      if (Views._applyDashboardAllFilters) {
-        Views._applyDashboardAllFilters();
-      }
+      if (Views._applyDashboardAllFilters) Views._applyDashboardAllFilters();
 
       const _all = App.state.candidates || [];
       const _filtered = App.state.filteredCandidates || [];
-      
-      const data = (_filtered && _filtered.length < _all.length)
-        ? _filtered
-        : _all;
+      const data = (_filtered.length > 0 && _filtered.length < _all.length) ? _filtered : _all;
 
       if (!data || !data.length) { Toast.warning('No candidates match the applied filters.'); return; }
-      const isFiltered = data.length < _all.length;
 
-      const headers = [
-        'FullName',
-        'Position',
-        'Notes',
-        'HR_Code',
-        'Recruitment_Type',
-        'Batch_Number'
-      ];
-      const esc = v => '"' + (v || '').toString().replace(/"/g, '""') + '"';
-      const rows = data.map(c => {
-        return [
-          esc(c.FullName),
-          esc(c.Position),
-          esc(c.Notes),
-          esc(c.HR_Code),
-          esc(c.Recruitment_Type),
-          esc(Views._getBatchValue(c) || '')
-        ].join(',');
-      });
-      const csv = '\uFEFF' + [headers.join(',')].concat(rows).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'HR_Candidates_' + new Date().toISOString().slice(0, 10) + '.csv';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      Toast.success(
-        isFiltered
-          ? 'Exported ' + data.length + ' filtered candidates (out of ' + _all.length + ' total).'
-          : 'Exported all ' + data.length + ' candidates to CSV!'
-      );
+      const filename = 'HR_Candidates_' + new Date().toISOString().slice(0, 10) + '.csv';
+      Views._openExportConfigModal(data, Views._EXPORT_DEFAULTS_DASHBOARD, filename);
     },
 
     _exportDashboardKPI() {
@@ -2114,61 +2108,179 @@
     _exportCandidates() {
       const _all = App.state.candidates || [];
       const _filtered = App.state.filteredCandidates || [];
+      const data = (_filtered.length > 0 && _filtered.length < _all.length) ? _filtered : _all;
 
-      // Use filtered list only when it's a real subset (filter is active)
-      const data = (_filtered.length > 0 && _filtered.length < _all.length)
-        ? _filtered
-        : _all;
+      if (!data || !data.length) { Toast.warning('No candidates to export.'); return; }
 
-      if (!data || !data.length) {
-        Toast.warning('No candidates to export.');
+      const filename = 'HR_Candidates_' + new Date().toISOString().slice(0, 10) + '.csv';
+      Views._openExportConfigModal(data, Views._EXPORT_DEFAULTS_CANDIDATES, filename);
+    },
+
+    _openExportConfigModal(data, defaultKeys, filename) {
+      const allKeys = Views._EXPORT_COLUMNS.map(c => c.key);
+      Views._ecState = {
+        data: data,
+        filename: filename,
+        order: [
+          ...defaultKeys.filter(k => allKeys.includes(k)),
+          ...allKeys.filter(k => !defaultKeys.includes(k))
+        ],
+        checked: new Set(defaultKeys.filter(k => allKeys.includes(k)))
+      };
+
+      Modal.open(`
+        <div class="modal__header">
+          <h3 class="modal__title">📥 Export to CSV</h3>
+        </div>
+        <div class="modal__body" style="display:flex;gap:var(--sp-4);min-height:420px;padding:var(--sp-3);">
+          <div id="ec-picker" style="width:270px;flex-shrink:0;border-right:1px solid var(--border);padding-right:var(--sp-3);display:flex;flex-direction:column;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-2);">
+              <span style="font-weight:600;font-size:0.85rem;">Columns</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">
+                <a href="#" onclick="Views._ecSelectAll();return false;" style="color:var(--primary);">All</a>
+                &nbsp;·&nbsp;
+                <a href="#" onclick="Views._ecClearAll();return false;" style="color:var(--text-muted);">None</a>
+              </span>
+            </div>
+            <div id="ec-col-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:4px;"></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:var(--sp-2);min-width:0;">
+            <span style="font-weight:600;font-size:0.85rem;">
+              Preview
+              <span style="font-weight:400;color:var(--text-muted);font-size:0.78rem;">(first 5 rows)</span>
+            </span>
+            <div id="ec-preview" style="overflow:auto;flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:var(--sp-2);"></div>
+          </div>
+        </div>
+        <div class="modal__footer" style="display:flex;justify-content:flex-end;gap:var(--sp-2);">
+          <button class="btn btn--outline" onclick="Modal.close()">Cancel</button>
+          <button class="btn btn--primary" id="ec-download-btn" onclick="Views._ecDownload()">📥 Download CSV</button>
+        </div>
+      `);
+
+      Views._ecRender();
+    },
+
+    _ecRender() {
+      const list = document.getElementById('ec-col-list');
+      if (!list) return;
+
+      const { order, checked } = Views._ecState;
+      const allCols = Views._EXPORT_COLUMNS;
+
+      list.innerHTML = order.map(key => {
+        const col = allCols.find(c => c.key === key);
+        if (!col) return '';
+        const isChecked = checked.has(key);
+        return `
+          <div class="ec-row" data-key="${key}" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:var(--radius);background:var(--surface);opacity:${isChecked ? '1' : '0.45'};">
+            <input type="checkbox" id="ec-chk-${key}" ${isChecked ? 'checked' : ''} onchange="Views._ecToggle('${key}')" style="flex-shrink:0;">
+            <label for="ec-chk-${key}" style="flex:1;font-size:0.83rem;cursor:pointer;user-select:none;">${escHtml(col.label)}</label>
+            <button class="btn btn--ghost btn--sm" style="padding:1px 5px;font-size:0.75rem;line-height:1;" onclick="Views._ecMove('${key}',-1)" title="Move up">▲</button>
+            <button class="btn btn--ghost btn--sm" style="padding:1px 5px;font-size:0.75rem;line-height:1;" onclick="Views._ecMove('${key}',1)" title="Move down">▼</button>
+          </div>`;
+      }).join('');
+
+      const dlBtn = document.getElementById('ec-download-btn');
+      if (dlBtn) dlBtn.disabled = checked.size === 0;
+
+      Views._ecRefreshPreview();
+    },
+
+    _ecToggle(key) {
+      if (Views._ecState.checked.has(key)) {
+        Views._ecState.checked.delete(key);
+      } else {
+        Views._ecState.checked.add(key);
+      }
+      Views._ecRender();
+    },
+
+    _ecMove(key, direction) {
+      const order = Views._ecState.order;
+      const idx = order.indexOf(key);
+      const newIdx = idx + direction;
+      if (newIdx < 0 || newIdx >= order.length) return;
+      [order[idx], order[newIdx]] = [order[newIdx], order[idx]];
+      Views._ecRender();
+    },
+
+    _ecSelectAll() {
+      Views._ecState.order.forEach(k => Views._ecState.checked.add(k));
+      Views._ecRender();
+    },
+
+    _ecClearAll() {
+      Views._ecState.checked.clear();
+      Views._ecRender();
+    },
+
+    _ecRefreshPreview() {
+      const preview = document.getElementById('ec-preview');
+      if (!preview) return;
+
+      const selectedKeys = Views._ecState.order.filter(k => Views._ecState.checked.has(k));
+      if (selectedKeys.length === 0) {
+        preview.innerHTML = '<p style="color:var(--text-muted);padding:var(--sp-2);font-size:0.83rem;">Select at least one column to preview.</p>';
         return;
       }
 
-      const isFiltered = data.length < _all.length;
-      const { docCompleteness } = App.state;
+      const colDefs = selectedKeys.map(k => Views._EXPORT_COLUMNS.find(c => c.key === k)).filter(Boolean);
+      const rows = (Views._ecState.data || []).slice(0, 5);
 
-      const headers = [
-        'CandidateID', 'FullName', 'Position', 'Department',
-        'Email', 'Phone', 'Nationality', 'OfferSalary',
-        'CurrentStatus', 'CreatedAt', 'UpdatedAt',
-        'DocCompleteness%', 'PresentDocs', 'MissingDocs'
-      ];
+      if (rows.length === 0) {
+        preview.innerHTML = '<p style="color:var(--text-muted);padding:var(--sp-2);font-size:0.83rem;">No data to preview.</p>';
+        return;
+      }
 
+      const thCells = colDefs.map(col =>
+        `<th style="white-space:nowrap;padding:5px 10px;font-size:0.73rem;text-align:left;background:var(--surface);border-bottom:2px solid var(--border);position:sticky;top:0;">${escHtml(col.label)}</th>`
+      ).join('');
+
+      const bodyRows = rows.map(c => {
+        const tds = colDefs.map(col => {
+          const val = String(col.getValue(c, App.state) || '');
+          return `<td style="padding:5px 10px;font-size:0.73rem;border-bottom:1px solid var(--border);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(val)}">${escHtml(val)}</td>`;
+        }).join('');
+        return `<tr>${tds}</tr>`;
+      }).join('');
+
+      preview.innerHTML = `<table style="border-collapse:collapse;width:100%;"><thead><tr>${thCells}</tr></thead><tbody>${bodyRows}</tbody></table>`;
+    },
+
+    _ecDownload() {
+      const selectedKeys = Views._ecState.order.filter(k => Views._ecState.checked.has(k));
+      if (selectedKeys.length === 0) return;
+
+      const colDefs = selectedKeys.map(k => Views._EXPORT_COLUMNS.find(c => c.key === k)).filter(Boolean);
+      const data = Views._ecState.data;
       const esc = v => '"' + (v || '').toString().replace(/"/g, '""') + '"';
 
-      const rows = data.map(c => {
-        const comp = docCompleteness[c.CandidateID];
-        const pct = comp ? comp.pct : '';
-        const present = comp ? comp.presentDocs.join('; ') : '';
-        const missing = comp ? comp.missingDocs.join('; ') : '';
-        return [
-          esc(c.CandidateID), esc(c.FullName), esc(c.Position), esc(c.Department),
-          esc(c.Email), esc(c.Phone), esc(c.Nationality), esc(c.OfferSalary),
-          esc(c.CurrentStatus), esc(c.CreatedAt), esc(c.UpdatedAt),
-          esc(pct), esc(present), esc(missing)
-        ].join(',');
-      });
+      const headers = colDefs.map(col => esc(col.label)).join(',');
+      const bodyRows = data.map(c =>
+        colDefs.map(col => esc(col.getValue(c, App.state))).join(',')
+      );
 
-      const csv = '\uFEFF' + [headers.join(',')].concat(rows).join('\n');
+      const csv = '\uFEFF' + [headers].concat(bodyRows).join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'HR_Candidates_' + new Date().toISOString().slice(0, 10) + '.csv';
+      a.download = Views._ecState.filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
+      Modal.close();
+      const isFiltered = data.length < (App.state.candidates || []).length;
       Toast.success(
         isFiltered
-          ? '✅ Exported ' + data.length + ' filtered candidates (out of ' + _all.length + ' total).'
-          : '✅ Exported all ' + data.length + ' candidates.'
+          ? '✅ Exported ' + data.length + ' filtered candidates.'
+          : '✅ Exported all ' + data.length + ' candidates to CSV.'
       );
     },
 
-    // ── CANDIDATE DETAIL ───────────────────────
     candidateDetail(container) {
       const c = App.state.selectedCandidate;
       if (!c) { Router.navigate('candidates'); return; }
