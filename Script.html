@@ -1582,8 +1582,28 @@
             : { pct: 0, missingDocs: [...REQUIRED_DOCS], presentDocs: [] };
         });
         App.setState({ docCompleteness: completeness });
-        // Re-render table now that completeness data is available — restore saved filters first
-        Views._restoreFilterState();
+
+        // Re-render the candidates table if it is currently visible in the DOM.
+        // Always do this unconditionally — _restoreFilterState() exits early when
+        // there are no saved filters, leaving the table stuck on "Loading…".
+        const tableEl = document.getElementById('candidates-table');
+        if (tableEl) {
+          let savedFilters = null;
+          try { savedFilters = JSON.parse(localStorage.getItem('hr_candidate_filters') || 'null'); } catch (_) {}
+
+          if (savedFilters) {
+            // Saved filters exist — let _restoreFilterState handle the re-render
+            // (it will call _filterCandidates internally).
+            Views._restoreFilterState();
+          } else {
+            // No saved filters — re-render directly with the current candidate list.
+            Views._renderCandidatesTable(
+              App.state.filteredCandidates && App.state.filteredCandidates.length
+                ? App.state.filteredCandidates
+                : App.state.candidates
+            );
+          }
+        }
       } catch (err) {
         console.error('Completeness batch load error:', err);
       }
