@@ -533,9 +533,6 @@
           <p class="page-header__sub">Live overview of all mobilization cases — ${fmt.date(new Date().toISOString())}</p>
         </div>
         <div class="page-header__actions">
-          <button class="btn btn--outline btn--sm" onclick="Views._refreshDashboard()" aria-label="Refresh dashboard">
-            🔄 Refresh
-          </button>
           <button class="btn btn--primary btn--sm" onclick="Router.navigate('new-candidate')">
             ＋ New Candidate
           </button>
@@ -3095,11 +3092,7 @@
           <h1 class="page-header__title">Follow-up Calendar</h1>
           <p class="page-header__sub">Manage candidate appointments and deadlines</p>
         </div>
-        <div class="page-header__actions">
-          <button class="btn btn--outline btn--sm" onclick="Router.navigate('calendar')" aria-label="Refresh events">
-            🔄 Refresh
-          </button>
-        </div>
+
       </div>
       
       <div class="calendar-filters">
