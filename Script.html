@@ -235,7 +235,7 @@
           list = list.filter(c => filters.nationality.includes(c.nationality));
         }
         const docSummary = {};
-        ['Passport','Photo','Academic Certificate','Medical Examination','Medical Analysis','Visa','CV'].forEach(t => docSummary[t] = 'Missing');
+        ['Passport', 'Photo', 'Academic Certificate', 'Medical Examination', 'Medical Analysis', 'Visa', 'CV'].forEach(t => docSummary[t] = 'Missing');
         list.forEach(c => c.docSummary = { ...docSummary });
         return {
           success: true,
@@ -493,24 +493,24 @@
 
     // ── EXPORT CONFIG — Column Definitions ──────────────────────────
     _EXPORT_COLUMNS: [
-      { key: 'FullName',        label: 'Full Name',          getValue: (c)       => c.FullName        || '' },
-      { key: 'Position',        label: 'Position',           getValue: (c)       => c.Position        || '' },
-      { key: 'Department',      label: 'Department',         getValue: (c)       => c.Department      || '' },
-      { key: 'Nationality',     label: 'Nationality',        getValue: (c)       => c.Nationality     || '' },
-      { key: 'Email',           label: 'Email',              getValue: (c)       => c.Email           || '' },
-      { key: 'Phone',           label: 'Phone',              getValue: (c)       => c.Phone           || '' },
-      { key: 'OfferSalary',     label: 'Offer Salary',       getValue: (c)       => c.OfferSalary     || '' },
-      { key: 'CurrentStatus',   label: 'Status',             getValue: (c)       => c.CurrentStatus   || '' },
-      { key: 'HR_Code',         label: 'HR Code',            getValue: (c)       => c.HR_Code         || '' },
-      { key: 'Recruitment_Type',label: 'Recruitment Type',   getValue: (c)       => c.Recruitment_Type|| '' },
-      { key: 'Batch_Number',    label: 'Batch Number',       getValue: (c)       => Views._getBatchValue(c) || '' },
-      { key: 'Notes',           label: 'Notes',              getValue: (c)       => c.Notes           || '' },
-      { key: 'CandidateID',     label: 'Candidate ID',       getValue: (c)       => c.CandidateID     || '' },
-      { key: 'CreatedAt',       label: 'Created At',         getValue: (c)       => c.CreatedAt       || '' },
-      { key: 'UpdatedAt',       label: 'Updated At',         getValue: (c)       => c.UpdatedAt       || '' },
+      { key: 'FullName', label: 'Full Name', getValue: (c) => c.FullName || '' },
+      { key: 'Position', label: 'Position', getValue: (c) => c.Position || '' },
+      { key: 'Department', label: 'Department', getValue: (c) => c.Department || '' },
+      { key: 'Nationality', label: 'Nationality', getValue: (c) => c.Nationality || '' },
+      { key: 'Email', label: 'Email', getValue: (c) => c.Email || '' },
+      { key: 'Phone', label: 'Phone', getValue: (c) => c.Phone || '' },
+      { key: 'OfferSalary', label: 'Offer Salary', getValue: (c) => c.OfferSalary || '' },
+      { key: 'CurrentStatus', label: 'Status', getValue: (c) => c.CurrentStatus || '' },
+      { key: 'HR_Code', label: 'HR Code', getValue: (c) => c.HR_Code || '' },
+      { key: 'Recruitment_Type', label: 'Recruitment Type', getValue: (c) => c.Recruitment_Type || '' },
+      { key: 'Batch_Number', label: 'Batch Number', getValue: (c) => Views._getBatchValue(c) || '' },
+      { key: 'Notes', label: 'Notes', getValue: (c) => c.Notes || '' },
+      { key: 'CandidateID', label: 'Candidate ID', getValue: (c) => c.CandidateID || '' },
+      { key: 'CreatedAt', label: 'Created At', getValue: (c) => c.CreatedAt || '' },
+      { key: 'UpdatedAt', label: 'Updated At', getValue: (c) => c.UpdatedAt || '' },
       { key: 'DocCompleteness', label: 'Doc Completeness %', getValue: (c, state) => { const comp = (state.docCompleteness || {})[c.CandidateID]; return comp ? comp.pct : ''; } },
-      { key: 'PresentDocs',     label: 'Present Documents',  getValue: (c, state) => { const comp = (state.docCompleteness || {})[c.CandidateID]; return comp ? comp.presentDocs.join('; ') : ''; } },
-      { key: 'MissingDocs',     label: 'Missing Documents',  getValue: (c, state) => { const comp = (state.docCompleteness || {})[c.CandidateID]; return comp ? comp.missingDocs.join('; ') : ''; } }
+      { key: 'PresentDocs', label: 'Present Documents', getValue: (c, state) => { const comp = (state.docCompleteness || {})[c.CandidateID]; return comp ? comp.presentDocs.join('; ') : ''; } },
+      { key: 'MissingDocs', label: 'Missing Documents', getValue: (c, state) => { const comp = (state.docCompleteness || {})[c.CandidateID]; return comp ? comp.missingDocs.join('; ') : ''; } }
     ],
 
     _EXPORT_DEFAULTS_DASHBOARD: ['FullName', 'Position', 'Notes', 'HR_Code', 'Recruitment_Type', 'Batch_Number'],
@@ -706,10 +706,10 @@
 
       // Track selected card filters
       Views._dashboardSelectedCards = new Set();
-      Views._dashStatusFilters        = [];
+      Views._dashStatusFilters = [];
       Views._dashExcludeStatusFilters = [];
-      Views._dashDocFilters           = [];
-      Views._selectedBatchFilter      = null;
+      Views._dashDocFilters = [];
+      Views._selectedBatchFilter = null;
       Views._refreshDashboard();
     },
 
@@ -850,7 +850,7 @@
           // ── Section 1: Status-based cards ──────────────────────────────
           const allCands = candsRes.data || [];
           const activeCands = allCands.filter(c => String(c.CurrentStatus || '').trim() !== 'Closed');
-          
+
           const internalCount = activeCands.filter(c => String(c.Recruitment_Type || '').trim() === 'Internal').length;
           const externalCount = activeCands.filter(c => String(c.Recruitment_Type || '').trim() === 'External').length;
           const batch1Count = activeCands.filter(c => Views._normBatch(Views._getBatchValue(c)) === Views._normBatch('Batch 1')).length;
@@ -866,11 +866,11 @@
             Views._kpiCard('Visa Pending', k.visaPending ?? '--', '🛂', 'red', 'Awaiting visa issuance', { type: 'status', value: 'Visa Pending' }),
             Views._kpiCard('Visa Completed', k.visaCompleted ?? '--', '✅', 'green', 'Visa issued', { type: 'status', value: 'Visa Completed' }),
             Views._kpiCard('Mobilized', k.mobilized ?? '--', '✈️', 'purple', 'Successfully mobilized', { type: 'status', value: 'Mobilized' }),
-            Views._kpiCard('Internal Candidates', internalCount, '🏢', 'blue',   'Internally recruited', { type: 'recruitmentType', value: 'Internal' }),
-            Views._kpiCard('External Candidates', externalCount, '🌐', 'orange', 'Externally recruited',  { type: 'recruitmentType', value: 'External' }),
-            Views._kpiCard('Batch 1', batch1Count, '1️⃣', 'blue',   'Candidates in Batch 1', { type: 'batchNumber', value: 'Batch 1' }),
+            Views._kpiCard('Internal Candidates', internalCount, '🏢', 'blue', 'Internally recruited', { type: 'recruitmentType', value: 'Internal' }),
+            Views._kpiCard('External Candidates', externalCount, '🌐', 'orange', 'Externally recruited', { type: 'recruitmentType', value: 'External' }),
+            Views._kpiCard('Batch 1', batch1Count, '1️⃣', 'blue', 'Candidates in Batch 1', { type: 'batchNumber', value: 'Batch 1' }),
             Views._kpiCard('Batch 2', batch2Count, '2️⃣', 'purple', 'Candidates in Batch 2', { type: 'batchNumber', value: 'Batch 2' }),
-            Views._kpiCard('Batch 3', batch3Count, '3️⃣', 'green',  'Candidates in Batch 3', { type: 'batchNumber', value: 'Batch 3' }),
+            Views._kpiCard('Batch 3', batch3Count, '3️⃣', 'green', 'Candidates in Batch 3', { type: 'batchNumber', value: 'Batch 3' }),
             Views._kpiCard('Batch 4', batch4Count, '4️⃣', 'teal', 'Candidates in Batch 4', { type: 'batchNumber', value: 'Batch 4' }),
           ].join('');
 
@@ -1056,12 +1056,12 @@
       // Update hint bar
       const labels = filters.map(f => {
         const [type, val] = f.split('::');
-        if (type === 'status')          return `Status: ${val}`;
-        if (type === 'hasDoc')          return `Has: ${val}`;
-        if (type === 'missingDoc')      return `Missing: ${val}`;
+        if (type === 'status') return `Status: ${val}`;
+        if (type === 'hasDoc') return `Has: ${val}`;
+        if (type === 'missingDoc') return `Missing: ${val}`;
         if (type === 'recruitmentType') return `Type: ${val}`;
-        if (type === 'batchNumber')     return `Batch: ${val}`;
-        if (type === 'calendar')        return `Calendar: ${val}`;
+        if (type === 'batchNumber') return `Batch: ${val}`;
+        if (type === 'calendar') return `Calendar: ${val}`;
         return val;
       }).join(' + ');
 
@@ -1086,13 +1086,13 @@
         ? App.state.filteredCandidates   // already KPI-filtered
         : App.state.candidates;          // no card selected → start from all
 
-      const query         = (document.getElementById('dash-search-input')?.value || '').toLowerCase();
-      const deptFilter    = document.getElementById('dash-dept-filter')?.value || '';
+      const query = (document.getElementById('dash-search-input')?.value || '').toLowerCase();
+      const deptFilter = document.getElementById('dash-dept-filter')?.value || '';
       const completionMin = parseInt(document.getElementById('dash-completion-min')?.value || '0', 10);
       const { docCompleteness } = App.state;
-      const statusFilters        = Views._dashStatusFilters        || [];
+      const statusFilters = Views._dashStatusFilters || [];
       const excludeStatusFilters = Views._dashExcludeStatusFilters || [];
-      const docFilters           = Views._dashDocFilters           || [];
+      const docFilters = Views._dashDocFilters || [];
 
       let data = base.filter(c => {
         // Text search
@@ -1140,7 +1140,7 @@
       const idx = Views._dashDocFilters.indexOf(docType);
       if (idx >= 0) Views._dashDocFilters.splice(idx, 1);
       else Views._dashDocFilters.push(docType);
-      const cb  = document.querySelector(`.dash-doc-check[value="${docType}"]`);
+      const cb = document.querySelector(`.dash-doc-check[value="${docType}"]`);
       if (cb) cb.checked = Views._dashDocFilters.includes(docType);
       const btn = document.getElementById(`dash-qf-doc-${key}`);
       if (btn) {
@@ -1156,7 +1156,7 @@
       const idx = Views._dashStatusFilters.indexOf(status);
       if (idx >= 0) Views._dashStatusFilters.splice(idx, 1);
       else Views._dashStatusFilters.push(status);
-      const cb  = document.querySelector(`.dash-status-check[value="${status}"]`);
+      const cb = document.querySelector(`.dash-status-check[value="${status}"]`);
       if (cb) cb.checked = Views._dashStatusFilters.includes(status);
       const btn = document.getElementById(`dash-qf-status-${key}`);
       if (btn) {
@@ -1183,12 +1183,12 @@
       Views._dashDocFilters = [...document.querySelectorAll('.dash-doc-check:checked')].map(el => el.value);
       // Sync quick-pills
       Views._dashDocFilters.forEach(dt => {
-        const btn = document.getElementById(`dash-qf-doc-${dt.replace(/\s/g,'_')}`);
-        if (btn) { btn.classList.add('quick-filter-btn--active'); btn.setAttribute('aria-pressed','true'); }
+        const btn = document.getElementById(`dash-qf-doc-${dt.replace(/\s/g, '_')}`);
+        if (btn) { btn.classList.add('quick-filter-btn--active'); btn.setAttribute('aria-pressed', 'true'); }
       });
       document.querySelectorAll('.dash-doc-check:not(:checked)').forEach(cb => {
-        const btn = document.getElementById(`dash-qf-doc-${cb.value.replace(/\s/g,'_')}`);
-        if (btn) { btn.classList.remove('quick-filter-btn--active'); btn.setAttribute('aria-pressed','false'); }
+        const btn = document.getElementById(`dash-qf-doc-${cb.value.replace(/\s/g, '_')}`);
+        if (btn) { btn.classList.remove('quick-filter-btn--active'); btn.setAttribute('aria-pressed', 'false'); }
       });
       Views._saveDashboardFilterState();
       Views._applyDashboardAllFilters();
@@ -1203,20 +1203,20 @@
 
     _toggleDashAdvancedFilters() {
       const panel = document.getElementById('dash-advanced-filter-panel');
-      const btn   = document.getElementById('dash-adv-filter-btn');
+      const btn = document.getElementById('dash-adv-filter-btn');
       if (!panel || !btn) return;
       const wasHidden = panel.hidden;
       panel.hidden = !wasHidden;
       btn.setAttribute('aria-expanded', String(wasHidden));
-      btn.classList.toggle('btn--primary',  wasHidden);
+      btn.classList.toggle('btn--primary', wasHidden);
       btn.classList.toggle('btn--outline', !wasHidden);
     },
 
     _dashUpdateClearButton() {
       const hasFilters =
-        (Views._dashStatusFilters        || []).length > 0 ||
+        (Views._dashStatusFilters || []).length > 0 ||
         (Views._dashExcludeStatusFilters || []).length > 0 ||
-        (Views._dashDocFilters           || []).length > 0 ||
+        (Views._dashDocFilters || []).length > 0 ||
         !!(document.getElementById('dash-search-input')?.value) ||
         !!(document.getElementById('dash-dept-filter')?.value);
       const btn = document.getElementById('dash-clear-filters-btn');
@@ -1224,10 +1224,10 @@
     },
 
     _clearDashboardAllFilters() {
-      try { localStorage.removeItem('hr_dashboard_filters'); } catch (_) {}
-      Views._dashStatusFilters        = [];
+      try { localStorage.removeItem('hr_dashboard_filters'); } catch (_) { }
+      Views._dashStatusFilters = [];
       Views._dashExcludeStatusFilters = [];
-      Views._dashDocFilters           = [];
+      Views._dashDocFilters = [];
       document.querySelectorAll('.dash-status-check, .dash-excl-status-check, .dash-doc-check')
         .forEach(cb => { cb.checked = false; });
       document.querySelectorAll('[id^="dash-qf-"]').forEach(btn => {
@@ -1248,7 +1248,7 @@
     },
 
     _clearDashboardFilter() {
-      try { localStorage.removeItem('hr_dashboard_filters'); } catch (_) {}
+      try { localStorage.removeItem('hr_dashboard_filters'); } catch (_) { }
       Views._dashboardSelectedCards.clear();
       Views._selectedBatchFilter = null;
       document.querySelectorAll('.kpi-card--selected').forEach(el => el.classList.remove('kpi-card--selected'));
@@ -1742,29 +1742,29 @@
 
     _saveDashboardFilterState() {
       const searchEl = document.getElementById('dash-search-input');
-      const deptEl   = document.getElementById('dash-dept-filter');
-      const rangeEl  = document.getElementById('dash-completion-min');
-      const payload  = {
-        statusFilters:        Views._dashStatusFilters        || [],
+      const deptEl = document.getElementById('dash-dept-filter');
+      const rangeEl = document.getElementById('dash-completion-min');
+      const payload = {
+        statusFilters: Views._dashStatusFilters || [],
         excludeStatusFilters: Views._dashExcludeStatusFilters || [],
-        docFilters:           Views._dashDocFilters           || [],
-        searchQuery:          searchEl  ? searchEl.value  : '',
-        deptFilter:           deptEl    ? deptEl.value    : '',
-        completionMin:        rangeEl   ? parseInt(rangeEl.value, 10) : 0,
-        selectedCards:        Array.from(Views._dashboardSelectedCards || []),
+        docFilters: Views._dashDocFilters || [],
+        searchQuery: searchEl ? searchEl.value : '',
+        deptFilter: deptEl ? deptEl.value : '',
+        completionMin: rangeEl ? parseInt(rangeEl.value, 10) : 0,
+        selectedCards: Array.from(Views._dashboardSelectedCards || []),
       };
-      try { localStorage.setItem('hr_dashboard_filters', JSON.stringify(payload)); } catch (_) {}
+      try { localStorage.setItem('hr_dashboard_filters', JSON.stringify(payload)); } catch (_) { }
     },
 
     _restoreDashboardFilterState() {
       let saved;
-      try { saved = JSON.parse(localStorage.getItem('hr_dashboard_filters') || 'null'); } catch (_) {}
+      try { saved = JSON.parse(localStorage.getItem('hr_dashboard_filters') || 'null'); } catch (_) { }
       if (!saved) return;
 
       // ── Restore View state variables ──
-      Views._dashStatusFilters        = Array.isArray(saved.statusFilters)        ? saved.statusFilters        : [];
+      Views._dashStatusFilters = Array.isArray(saved.statusFilters) ? saved.statusFilters : [];
       Views._dashExcludeStatusFilters = Array.isArray(saved.excludeStatusFilters) ? saved.excludeStatusFilters : [];
-      Views._dashDocFilters           = Array.isArray(saved.docFilters)           ? saved.docFilters           : [];
+      Views._dashDocFilters = Array.isArray(saved.docFilters) ? saved.docFilters : [];
 
       // ── Restore KPI card selected set ──
       Views._dashboardSelectedCards = new Set(Array.isArray(saved.selectedCards) ? saved.selectedCards : []);
@@ -1785,20 +1785,20 @@
       if (Views._dashboardSelectedCards.size > 0) {
         const labels = Array.from(Views._dashboardSelectedCards).map(f => {
           const [type, val] = f.split('::');
-          if (type === 'status')          return `Status: ${val}`;
-          if (type === 'hasDoc')          return `Has: ${val}`;
-          if (type === 'missingDoc')      return `Missing: ${val}`;
+          if (type === 'status') return `Status: ${val}`;
+          if (type === 'hasDoc') return `Has: ${val}`;
+          if (type === 'missingDoc') return `Missing: ${val}`;
           if (type === 'recruitmentType') return `Type: ${val}`;
-          if (type === 'batchNumber')     return `Batch: ${val}`;
-          if (type === 'calendar')        return `Calendar: ${val}`;
+          if (type === 'batchNumber') return `Batch: ${val}`;
+          if (type === 'calendar') return `Calendar: ${val}`;
           return val;
         }).join(' + ');
         const hint = document.getElementById('dashboard-filter-hint');
         if (hint) {
           document.getElementById('dashboard-filter-label').textContent = labels;
-          hint.style.display    = 'flex';
+          hint.style.display = 'flex';
           hint.style.alignItems = 'center';
-          hint.style.gap        = '4px';
+          hint.style.gap = '4px';
         }
       }
 
@@ -1843,7 +1843,7 @@
       if (deptEl && saved.deptFilter) deptEl.value = saved.deptFilter;
 
       // ── Restore Completion range ──
-      const rangeEl  = document.getElementById('dash-completion-min');
+      const rangeEl = document.getElementById('dash-completion-min');
       const rangeVal = document.getElementById('dash-completion-min-val');
       if (rangeEl && saved.completionMin != null) {
         rangeEl.value = saved.completionMin;
@@ -2012,8 +2012,8 @@
       const label = `${p} priority – ${titles.length} upcoming event${titles.length > 1 ? 's' : ''}`;
       const tooltipLines = titles.map(t => `<div class="ev-tooltip__item">${escHtml(t)}</div>`).join('');
       return `<span class="cand-event-dot" aria-label="${label}" style="background:${color}">` +
-             `<span class="ev-tooltip">${tooltipLines}</span>` +
-             `</span>`;
+        `<span class="ev-tooltip">${tooltipLines}</span>` +
+        `</span>`;
     },
 
     _candidateTableHtml(rows) {
@@ -2064,11 +2064,11 @@
           <td>${escHtml(c.Position)}</td>
           <td>
             ${c.Recruitment_Type === 'Internal'
-              ? `<span class="status-badge status-badge--blue"  style="font-size:.7rem">🏢 Internal</span>`
-              : c.Recruitment_Type === 'External'
+            ? `<span class="status-badge status-badge--blue"  style="font-size:.7rem">🏢 Internal</span>`
+            : c.Recruitment_Type === 'External'
               ? `<span class="status-badge status-badge--orange" style="font-size:.7rem">🌐 External</span>`
               : `<span style="color:var(--text-muted);font-size:.75rem">—</span>`
-            }
+          }
           </td>
           <td>${statusBadge(c.CurrentStatus)}</td>
           <td style="min-width:130px">${completenessCell}</td>
@@ -2359,10 +2359,10 @@
             <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin-bottom:4px">Recruitment Type</div>
             <div>
               ${c.Recruitment_Type === 'Internal'
-                ? `<span style="display:inline-block;padding:2px 10px;border-radius:9999px;font-size:.8rem;font-weight:600;background:#dbeafe;color:#1d4ed8">Internal</span>`
-                : c.Recruitment_Type === 'External'
-                  ? `<span style="display:inline-block;padding:2px 10px;border-radius:9999px;font-size:.8rem;font-weight:600;background:#fef3c7;color:#92400e">External</span>`
-                  : `<span style="color:var(--text-muted)">—</span>`}
+          ? `<span style="display:inline-block;padding:2px 10px;border-radius:9999px;font-size:.8rem;font-weight:600;background:#dbeafe;color:#1d4ed8">Internal</span>`
+          : c.Recruitment_Type === 'External'
+            ? `<span style="display:inline-block;padding:2px 10px;border-radius:9999px;font-size:.8rem;font-weight:600;background:#fef3c7;color:#92400e">External</span>`
+            : `<span style="color:var(--text-muted)">—</span>`}
             </div>
           </div>
         </div>
@@ -2966,9 +2966,9 @@
         department: document.getElementById('nc-department').value,
         salary: document.getElementById('nc-salary').value,
         coordinatorEmail: document.getElementById('nc-coordinator').value.trim() || App.state.currentUser.email,
-        hrCode:           document.getElementById('nc-hrcode').value.trim(),
-        recruitmentType:  document.getElementById('nc-recruitment-type').value,
-        batchNumber:      document.getElementById('nc-batch').value.trim()
+        hrCode: document.getElementById('nc-hrcode').value.trim(),
+        recruitmentType: document.getElementById('nc-recruitment-type').value,
+        batchNumber: document.getElementById('nc-batch').value.trim()
       };
 
       try {
@@ -3728,7 +3728,7 @@
     <div class="table-card" style="margin-bottom:var(--sp-3);padding:var(--sp-3);">
       <div style="font-size:.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:var(--sp-2);">SELECT DOCUMENT TYPES TO DOWNLOAD</div>
       <div id="dc-doctype-selector" style="display:flex;gap:var(--sp-2);flex-wrap:wrap;">
-        ${['Passport','Photo','Academic Certificate','Medical Examination','Medical Analysis','Visa','CV'].map(t => `
+        ${['Passport', 'Photo', 'Academic Certificate', 'Medical Examination', 'Medical Analysis', 'Visa', 'CV'].map(t => `
           <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:6px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;transition:all .15s;" class="dc-doctype-chip">
             <input type="checkbox" class="dc-doctype-check" value="${t}" onchange="Views._dcUpdateDownloadBtn()">
             <span>${t}</span>
@@ -3823,7 +3823,7 @@
         Views._dcPopulateFilterDropdowns();
         Views._dcUpdateStats(fixedRes.stats || {});
         Views._dcRender();
-      } catch(e) {
+      } catch (e) {
         console.error('Documents Center load error:', e);
         if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--danger);">Error loading candidates: ${e.message}<br><button class="btn btn--primary btn--sm" onclick="Views._dcLoad()" style="margin-top:12px;">Retry</button></td></tr>`;
         Toast.show('Failed to load Documents Center: ' + e.message, 'error');
@@ -3859,16 +3859,16 @@
     _dcApplyFilters() {
       const dc = App.state.documentsCenter;
       const status = document.getElementById('dc-filter-status')?.value || '';
-      const dept   = document.getElementById('dc-filter-dept')?.value || '';
-      const nat    = document.getElementById('dc-filter-nat')?.value || '';
-      const batch  = document.getElementById('dc-filter-batch')?.value || '';
+      const dept = document.getElementById('dc-filter-dept')?.value || '';
+      const nat = document.getElementById('dc-filter-nat')?.value || '';
+      const batch = document.getElementById('dc-filter-batch')?.value || '';
       const search = (document.getElementById('dc-search')?.value || '').toLowerCase();
 
       dc.filteredCandidates = dc.candidates.filter(c => {
         if (status && c.status !== status) return false;
-        if (dept   && c.department !== dept) return false;
-        if (nat    && c.nationality !== nat) return false;
-        if (batch  && c.batchNumber !== batch) return false;
+        if (dept && c.department !== dept) return false;
+        if (nat && c.nationality !== nat) return false;
+        if (batch && c.batchNumber !== batch) return false;
         if (search && !`${c.fullName} ${c.hrCode} ${c.candidateId}`.toLowerCase().includes(search)) return false;
         return true;
       });
@@ -3893,7 +3893,7 @@
     },
 
     _dcClearFilters() {
-      ['dc-filter-status','dc-filter-dept','dc-filter-nat','dc-filter-batch'].forEach(id => {
+      ['dc-filter-status', 'dc-filter-dept', 'dc-filter-nat', 'dc-filter-batch'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
           el.value = '';
@@ -4020,8 +4020,8 @@
               <span class="doc-count__tooltip doc-count__tooltip--available">
                 <span class="doc-count__tooltip-list">
                   ${c.availableCount > 0
-                    ? Object.entries(c.docSummary || {}).filter(([,s]) => s === 'Available').map(([type]) => `<span class="doc-count__tooltip-item">${escHtml(type)}</span>`).join('')
-                    : '<span class="doc-count__tooltip-item">No available documents</span>'}
+            ? Object.entries(c.docSummary || {}).filter(([, s]) => s === 'Available').map(([type]) => `<span class="doc-count__tooltip-item">${escHtml(type)}</span>`).join('')
+            : '<span class="doc-count__tooltip-item">No available documents</span>'}
                 </span>
               </span>
             </span>
@@ -4032,8 +4032,8 @@
               <span class="doc-count__tooltip doc-count__tooltip--missing">
                 <span class="doc-count__tooltip-list">
                   ${c.missingCount > 0
-                    ? Object.entries(c.docSummary || {}).filter(([,s]) => s === 'Missing').map(([type]) => `<span class="doc-count__tooltip-item">${escHtml(type)}</span>`).join('')
-                    : '<span class="doc-count__tooltip-item">No missing documents</span>'}
+            ? Object.entries(c.docSummary || {}).filter(([, s]) => s === 'Missing').map(([type]) => `<span class="doc-count__tooltip-item">${escHtml(type)}</span>`).join('')
+            : '<span class="doc-count__tooltip-item">No missing documents</span>'}
                 </span>
               </span>
             </span>
@@ -4129,7 +4129,7 @@
       const docTypes = [...document.querySelectorAll('.dc-doctype-check:checked')].map(cb => cb.value);
 
       if (candidateIds.length === 0) { Toast.show('Select at least one candidate.', 'warning'); return; }
-      if (docTypes.length === 0)     { Toast.show('Select at least one document type.', 'warning'); return; }
+      if (docTypes.length === 0) { Toast.show('Select at least one document type.', 'warning'); return; }
 
       // ── Generate a unique batch ID for progress tracking ──
       const batchId = `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -4186,11 +4186,11 @@
 
         // Trigger browser download from base64
         const byteChars = atob(res.base64);
-        const byteNums  = new Array(byteChars.length).fill(0).map((_, i) => byteChars.charCodeAt(i));
-        const byteArr   = new Uint8Array(byteNums);
-        const blob      = new Blob([byteArr], { type: 'application/zip' });
-        const url       = URL.createObjectURL(blob);
-        const a         = document.createElement('a');
+        const byteNums = new Array(byteChars.length).fill(0).map((_, i) => byteChars.charCodeAt(i));
+        const byteArr = new Uint8Array(byteNums);
+        const blob = new Blob([byteArr], { type: 'application/zip' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
         a.href = url; a.download = res.filename; a.click();
         URL.revokeObjectURL(url);
 
@@ -4201,7 +4201,7 @@
 
         Toast.show(`✅ Downloaded ${res.fileCount} files for ${res.candidateCount} candidates.`, 'success');
 
-      } catch(e) {
+      } catch (e) {
         stopPolling();
         Views._dcProgressError(e.message);
       } finally {
@@ -4224,34 +4224,34 @@
       overlay.removeAttribute('hidden');
       requestAnimationFrame(() => overlay.classList.add('is-visible'));
 
-      const fill    = document.getElementById('dc-progress-fill');
-      const pct     = document.getElementById('dc-progress-pct');
-      const icon    = document.getElementById('dc-progress-icon');
-      const text    = document.getElementById('dc-progress-text');
-      const found   = document.getElementById('dc-stat-found');
-      const dl      = document.getElementById('dc-stat-downloaded');
+      const fill = document.getElementById('dc-progress-fill');
+      const pct = document.getElementById('dc-progress-pct');
+      const icon = document.getElementById('dc-progress-icon');
+      const text = document.getElementById('dc-progress-text');
+      const found = document.getElementById('dc-stat-found');
+      const dl = document.getElementById('dc-stat-downloaded');
       const success = document.getElementById('dc-progress-success');
-      const err     = document.getElementById('dc-progress-error');
-      const footer  = document.getElementById('dc-progress-footer');
+      const err = document.getElementById('dc-progress-error');
+      const footer = document.getElementById('dc-progress-footer');
       const cancelBtn = document.getElementById('dc-progress-cancel-btn');
 
-      if (fill)    { fill.style.width = '0%'; fill.classList.remove('is-complete'); }
-      if (pct)     { pct.textContent = '0%'; pct.classList.remove('is-complete'); }
-      if (icon)    { icon.textContent = '⏳'; icon.classList.remove('is-done'); }
-      if (text)    text.textContent = 'Preparing your download…';
-      if (found)   found.textContent = '—';
-      if (dl)      dl.textContent = '—';
+      if (fill) { fill.style.width = '0%'; fill.classList.remove('is-complete'); }
+      if (pct) { pct.textContent = '0%'; pct.classList.remove('is-complete'); }
+      if (icon) { icon.textContent = '⏳'; icon.classList.remove('is-done'); }
+      if (text) text.textContent = 'Preparing your download…';
+      if (found) found.textContent = '—';
+      if (dl) dl.textContent = '—';
       if (success) success.classList.remove('is-visible');
-      if (err)     err.classList.remove('is-visible');
-      if (footer)  footer.classList.remove('is-visible');
+      if (err) err.classList.remove('is-visible');
+      if (footer) footer.classList.remove('is-visible');
       if (cancelBtn) { cancelBtn.style.display = ''; }
     },
 
     _dcUpdateProgressUI(prog) {
-      const text  = document.getElementById('dc-progress-text');
+      const text = document.getElementById('dc-progress-text');
       const found = document.getElementById('dc-stat-found');
-      const dl    = document.getElementById('dc-stat-downloaded');
-      const aria  = document.getElementById('dc-progress-aria');
+      const dl = document.getElementById('dc-stat-downloaded');
+      const aria = document.getElementById('dc-progress-aria');
 
       const target = Math.max(0, Math.min(100, prog.percent || 0));
 
@@ -4262,10 +4262,10 @@
       // RAF-based smooth easer: move 18% of remaining gap per frame
       Views._dcAnimateTo(safeTarget);
 
-      if (text)  text.textContent = prog.message || '';
-      if (found) found.textContent = (prog.filesFound  != null) ? prog.filesFound  : '—';
-      if (dl)    dl.textContent   = (prog.filesDownloaded != null) ? prog.filesDownloaded : '—';
-      if (aria)  aria.setAttribute('aria-valuenow', safeTarget);
+      if (text) text.textContent = prog.message || '';
+      if (found) found.textContent = (prog.filesFound != null) ? prog.filesFound : '—';
+      if (dl) dl.textContent = (prog.filesDownloaded != null) ? prog.filesDownloaded : '—';
+      if (aria) aria.setAttribute('aria-valuenow', safeTarget);
     },
 
     // Smooth RAF animation toward a target percent.
@@ -4277,16 +4277,16 @@
       }
 
       const fill = document.getElementById('dc-progress-fill');
-      const pct  = document.getElementById('dc-progress-pct');
+      const pct = document.getElementById('dc-progress-pct');
       if (!fill) return;
 
       const step = () => {
         const current = parseFloat(fill.style.width) || 0;
-        const diff    = targetPct - current;
+        const diff = targetPct - current;
 
         if (Math.abs(diff) < 0.3) {
           // Close enough — snap to target
-          fill.style.width  = targetPct + '%';
+          fill.style.width = targetPct + '%';
           if (pct) pct.textContent = Math.round(targetPct) + '%';
           Views._dcRafId = null;
           return;
@@ -4306,22 +4306,22 @@
       if (Views._dcRafId) { cancelAnimationFrame(Views._dcRafId); Views._dcRafId = null; }
       Views._dcCurrentPercent = 100;
 
-      const fill    = document.getElementById('dc-progress-fill');
-      const pct     = document.getElementById('dc-progress-pct');
-      const icon    = document.getElementById('dc-progress-icon');
-      const text    = document.getElementById('dc-progress-text');
+      const fill = document.getElementById('dc-progress-fill');
+      const pct = document.getElementById('dc-progress-pct');
+      const icon = document.getElementById('dc-progress-icon');
+      const text = document.getElementById('dc-progress-text');
       const success = document.getElementById('dc-progress-success');
       const successMsg = document.getElementById('dc-progress-success-msg');
-      const footer  = document.getElementById('dc-progress-footer');
+      const footer = document.getElementById('dc-progress-footer');
       const cancelBtn = document.getElementById('dc-progress-cancel-btn');
 
-      if (fill)  { fill.style.width = '100%'; fill.classList.add('is-complete'); }
-      if (pct)   { pct.textContent = '100%'; pct.classList.add('is-complete'); }
-      if (icon)  { icon.textContent = '✅'; icon.classList.add('is-done'); }
-      if (text)  text.textContent = 'Download started!';
+      if (fill) { fill.style.width = '100%'; fill.classList.add('is-complete'); }
+      if (pct) { pct.textContent = '100%'; pct.classList.add('is-complete'); }
+      if (icon) { icon.textContent = '✅'; icon.classList.add('is-done'); }
+      if (text) text.textContent = 'Download started!';
       if (successMsg) successMsg.textContent = message;
       if (success) success.classList.add('is-visible');
-      if (footer)  footer.classList.add('is-visible');
+      if (footer) footer.classList.add('is-visible');
       if (cancelBtn) cancelBtn.style.display = 'none';
     },
 
@@ -4329,17 +4329,17 @@
       // Stop any running animation loop
       if (Views._dcRafId) { cancelAnimationFrame(Views._dcRafId); Views._dcRafId = null; }
 
-      const icon      = document.getElementById('dc-progress-icon');
-      const text      = document.getElementById('dc-progress-text');
-      const errEl     = document.getElementById('dc-progress-error');
-      const errMsg    = document.getElementById('dc-progress-error-msg');
-      const footer    = document.getElementById('dc-progress-footer');
+      const icon = document.getElementById('dc-progress-icon');
+      const text = document.getElementById('dc-progress-text');
+      const errEl = document.getElementById('dc-progress-error');
+      const errMsg = document.getElementById('dc-progress-error-msg');
+      const footer = document.getElementById('dc-progress-footer');
       const cancelBtn = document.getElementById('dc-progress-cancel-btn');
 
-      if (icon)   { icon.textContent = '⛔'; icon.classList.add('is-done'); }
-      if (text)   text.textContent = 'Download failed.';
+      if (icon) { icon.textContent = '⛔'; icon.classList.add('is-done'); }
+      if (text) text.textContent = 'Download failed.';
       if (errMsg) errMsg.textContent = message;
-      if (errEl)  errEl.classList.add('is-visible');
+      if (errEl) errEl.classList.add('is-visible');
       if (footer) footer.classList.add('is-visible');
       if (cancelBtn) cancelBtn.style.display = 'none';
     },
@@ -4432,7 +4432,7 @@
             <button class="btn btn--outline" onclick="Modal.close()">Close</button>
           </div>
         `);
-      } catch(e) {
+      } catch (e) {
         Modal.open(`
           <div class="modal__header">
             <h2 class="modal__title">Preview Error</h2>
