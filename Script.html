@@ -716,7 +716,7 @@
     </span>
     <div class="cpp-header-actions">
       <button id="cpp-settings-btn" class="cpp-icon-btn" title="Settings (⚙️)">⚙️</button>
-      <button id="cpp-close-btn"    class="cpp-icon-btn" title="Close (Ctrl+Shift+P)">✕</button>
+      <button id="cpp-close-btn"    class="cpp-icon-btn" title="Close (Alt+Shift+P)">✕</button>
     </div>
   </div>
 
@@ -768,7 +768,7 @@
 
   <!-- Footer -->
   <div class="cpp-footer">
-    <span class="cpp-hint">Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> to toggle</span>
+    <span class="cpp-hint">Press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> to toggle</span>
   </div>
 
 </div>
@@ -4693,7 +4693,7 @@
     /* ── global keyboard shortcut ── */
     function initShortcut() {
       document.addEventListener('keydown', e => {
-        if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+        if (e.altKey && e.shiftKey && e.key === 'P') {
           e.preventDefault();
           toggle();
         }
