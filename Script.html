@@ -4570,11 +4570,11 @@
 
     function _cellValue(c, col) {
       switch (col) {
-        case 'name':   return (c.firstName || '') + ' ' + (c.lastName || '');
-        case 'pos':    return c.position || c.jobTitle || '—';
-        case 'code':   return c.hrCode   || c.id       || '—';
-        case 'type':   return c.candidateType || c.type || '—';
-        case 'status': return c.status        || c.currentStatus || '—';
+        case 'name':   return c.FullName         || '—';
+        case 'pos':    return c.Position         || '—';
+        case 'code':   return c.CandidateID      || '—';
+        case 'type':   return c.Recruitment_Type || '—';
+        case 'status': return c.CurrentStatus    || '—';
         default:       return '—';
       }
     }
