@@ -704,6 +704,83 @@
         </div>
       </div>`;
 
+      if (!document.getElementById('cpp-panel')) {
+        container.insertAdjacentHTML('beforeend', `
+<div id="cpp-panel" class="cpp-panel cpp-panel--hidden" role="dialog" aria-label="Candidate Preview Panel">
+
+  <!-- Header -->
+  <div class="cpp-header">
+    <span class="cpp-title">
+      👥 Candidate Preview
+      <span id="cpp-count" class="cpp-count-badge">0</span>
+    </span>
+    <div class="cpp-header-actions">
+      <button id="cpp-settings-btn" class="cpp-icon-btn" title="Settings (⚙️)">⚙️</button>
+      <button id="cpp-close-btn"    class="cpp-icon-btn" title="Close (Ctrl+Shift+P)">✕</button>
+    </div>
+  </div>
+
+  <!-- Settings Drawer (collapsed by default) -->
+  <div id="cpp-settings-drawer" class="cpp-settings-drawer cpp-settings-drawer--hidden">
+    <div class="cpp-settings-row">
+      <label>Columns</label>
+      <div id="cpp-col-toggles" class="cpp-col-toggles">
+        <label><input type="checkbox" data-col="name"   checked> Full Name</label>
+        <label><input type="checkbox" data-col="pos"    checked> Position</label>
+        <label><input type="checkbox" data-col="code"   checked> HR Code</label>
+        <label><input type="checkbox" data-col="type"   checked> Type</label>
+        <label><input type="checkbox" data-col="status" checked> Status</label>
+      </div>
+    </div>
+    <div class="cpp-settings-row">
+      <label>Row Density</label>
+      <select id="cpp-density">
+        <option value="normal" selected>Normal</option>
+        <option value="compact">Compact</option>
+        <option value="comfortable">Comfortable</option>
+      </select>
+    </div>
+    <div class="cpp-settings-row">
+      <label>Default Sort</label>
+      <select id="cpp-sort-col">
+        <option value="name">Full Name</option>
+        <option value="pos">Position</option>
+        <option value="code">HR Code</option>
+        <option value="status">Status</option>
+      </select>
+      <select id="cpp-sort-dir">
+        <option value="asc">A → Z</option>
+        <option value="desc">Z → A</option>
+      </select>
+    </div>
+    <div class="cpp-settings-row">
+      <label><input type="checkbox" id="cpp-sticky-header" checked> Sticky Header</label>
+    </div>
+  </div>
+
+  <!-- Table area -->
+  <div id="cpp-body" class="cpp-body">
+    <table id="cpp-table" class="cpp-table">
+      <thead id="cpp-thead"><tr></tr></thead>
+      <tbody id="cpp-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <div class="cpp-footer">
+    <span class="cpp-hint">Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> to toggle</span>
+  </div>
+
+</div>
+        `);
+        CandidatePreviewPanel.bindEvents();
+      }
+      
+      if (typeof _cppShortcutRegistered !== 'undefined' && !_cppShortcutRegistered) {
+        CandidatePreviewPanel.initShortcut();
+        _cppShortcutRegistered = true;
+      }
+
       // Track selected card filters
       Views._dashboardSelectedCards = new Set();
       Views._dashStatusFilters = [];
@@ -1133,6 +1210,7 @@
       Views._saveDashboardFilterState();
       Views._renderDashboardTable(data);
       Views._dashUpdateClearButton();
+      CandidatePreviewPanel.refresh();
     },
 
     _dashToggleDocFilter(docType) {
@@ -4465,6 +4543,165 @@
       }
     }
   };
+
+  let _cppShortcutRegistered = false;
+
+  const CandidatePreviewPanel = (() => {
+
+    /* ── private state ── */
+    let _open      = false;
+    let _cols      = ['name','pos','code','type','status'];
+    let _density   = 'normal';
+    let _sortCol   = 'name';
+    let _sortDir   = 'asc';
+    let _stickyHdr = true;
+
+    const COL_LABELS = {
+      name: 'Full Name', pos: 'Position',
+      code: 'HR Code',  type: 'Type', status: 'Status'
+    };
+
+    /* ── helpers ── */
+    function _panel()  { return document.getElementById('cpp-panel');           }
+    function _tbody()  { return document.getElementById('cpp-tbody');           }
+    function _thead()  { return document.getElementById('cpp-thead');           }
+    function _count()  { return document.getElementById('cpp-count');           }
+    function _drawer() { return document.getElementById('cpp-settings-drawer'); }
+
+    function _cellValue(c, col) {
+      switch (col) {
+        case 'name':   return (c.firstName || '') + ' ' + (c.lastName || '');
+        case 'pos':    return c.position || c.jobTitle || '—';
+        case 'code':   return c.hrCode   || c.id       || '—';
+        case 'type':   return c.candidateType || c.type || '—';
+        case 'status': return c.status        || c.currentStatus || '—';
+        default:       return '—';
+      }
+    }
+
+    function _sortData(data) {
+      return [...data].sort((a, b) => {
+        const av = _cellValue(a, _sortCol).toLowerCase();
+        const bv = _cellValue(b, _sortCol).toLowerCase();
+        return _sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+      });
+    }
+
+    /* ── render ── */
+    function refresh() {
+      const panel = _panel();
+      if (!panel || !_open) return;
+
+      const candidates = App.state.filteredCandidates || [];
+      const sorted     = _sortData(candidates);
+
+      /* count badge */
+      const countEl = _count();
+      if (countEl) countEl.textContent = sorted.length;
+
+      /* thead */
+      const theadRow = _thead().querySelector('tr');
+      theadRow.innerHTML = _cols
+        .map(col => `<th class="cpp-th">${COL_LABELS[col]}</th>`)
+        .join('');
+
+      /* sticky header */
+      _thead().style.position = _stickyHdr ? 'sticky' : '';
+      _thead().style.top      = _stickyHdr ? '0'      : '';
+
+      /* density */
+      const densityPad = { normal: '8px 12px', compact: '4px 8px', comfortable: '14px 16px' };
+      document.documentElement.style.setProperty('--cpp-cell-pad', densityPad[_density] || densityPad.normal);
+
+      /* tbody */
+      if (sorted.length === 0) {
+        _tbody().innerHTML = `<tr><td colspan="${_cols.length}" class="cpp-empty">No candidates match the current filters.</td></tr>`;
+        return;
+      }
+
+      _tbody().innerHTML = sorted.map(c => {
+        const cells = _cols.map(col => `<td class="cpp-td">${_cellValue(c, col)}</td>`).join('');
+        return `<tr class="cpp-tr">${cells}</tr>`;
+      }).join('');
+    }
+
+    /* ── open / close ── */
+    function open() {
+      const panel = _panel();
+      if (!panel) return;
+      _open = true;
+      panel.classList.remove('cpp-panel--hidden');
+      panel.classList.add('cpp-panel--visible');
+      refresh();
+    }
+
+    function close() {
+      const panel = _panel();
+      if (!panel) return;
+      _open = false;
+      panel.classList.remove('cpp-panel--visible');
+      panel.classList.add('cpp-panel--hidden');
+      /* close settings drawer too */
+      const dr = _drawer();
+      if (dr) dr.classList.add('cpp-settings-drawer--hidden');
+    }
+
+    function toggle() { _open ? close() : open(); }
+
+    /* ── settings drawer ── */
+    function _toggleDrawer() {
+      const dr = _drawer();
+      if (!dr) return;
+      dr.classList.toggle('cpp-settings-drawer--hidden');
+    }
+
+    function _applySettings() {
+      /* read column checkboxes */
+      const checks = document.querySelectorAll('#cpp-col-toggles input[type=checkbox]');
+      const newCols = [];
+      checks.forEach(cb => { if (cb.checked) newCols.push(cb.dataset.col); });
+      if (newCols.length > 0) _cols = newCols;
+
+      const densityEl = document.getElementById('cpp-density');
+      if (densityEl) _density = densityEl.value;
+
+      const sortColEl = document.getElementById('cpp-sort-col');
+      if (sortColEl) _sortCol = sortColEl.value;
+
+      const sortDirEl = document.getElementById('cpp-sort-dir');
+      if (sortDirEl) _sortDir = sortDirEl.value;
+
+      const stickyEl = document.getElementById('cpp-sticky-header');
+      if (stickyEl) _stickyHdr = stickyEl.checked;
+
+      refresh();
+    }
+
+    /* ── bind events (call once after panel is in DOM) ── */
+    function bindEvents() {
+      const closeBtn    = document.getElementById('cpp-close-btn');
+      const settingsBtn = document.getElementById('cpp-settings-btn');
+
+      if (closeBtn)    closeBtn.addEventListener('click', close);
+      if (settingsBtn) settingsBtn.addEventListener('click', _toggleDrawer);
+
+      /* apply settings on any change inside the drawer */
+      const drawer = _drawer();
+      if (drawer) drawer.addEventListener('change', _applySettings);
+    }
+
+    /* ── global keyboard shortcut ── */
+    function initShortcut() {
+      document.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+          e.preventDefault();
+          toggle();
+        }
+      });
+    }
+
+    return { open, close, toggle, refresh, bindEvents, initShortcut };
+  })();
 
   // ─────────────────────────────────────────────
   // APP INIT
