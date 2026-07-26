@@ -4581,9 +4581,19 @@
 
     function _sortData(data) {
       return [...data].sort((a, b) => {
-        const av = _cellValue(a, _sortCol).toLowerCase();
-        const bv = _cellValue(b, _sortCol).toLowerCase();
-        return _sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+        const av = _cellValue(a, _sortCol);
+        const bv = _cellValue(b, _sortCol);
+
+        // Numeric sort if both values look like numbers
+        const an = parseFloat(av.replace(/[^0-9.-]/g, ''));
+        const bn = parseFloat(bv.replace(/[^0-9.-]/g, ''));
+        if (!isNaN(an) && !isNaN(bn)) {
+          return _sortDir === 'asc' ? an - bn : bn - an;
+        }
+
+        // Text sort (locale-aware, handles Arabic)
+        const cmp = av.localeCompare(bv, undefined, { sensitivity: 'base' });
+        return _sortDir === 'asc' ? cmp : -cmp;
       });
     }
 
@@ -4601,9 +4611,27 @@
 
       /* thead */
       const theadRow = _thead().querySelector('tr');
-      theadRow.innerHTML = _cols
-        .map(col => `<th class="cpp-th">${COL_LABELS[col]}</th>`)
-        .join('');
+      theadRow.innerHTML = _cols.map(col => {
+        let arrow = '';
+        if (col === _sortCol) arrow = _sortDir === 'asc' ? ' ▲' : ' ▼';
+        return `<th class="cpp-th cpp-th--sortable" data-col="${col}" title="Click to sort">
+          ${COL_LABELS[col]}<span class="cpp-sort-arrow">${arrow}</span>
+        </th>`;
+      }).join('');
+
+      // Attach sort click listeners to headers
+      theadRow.querySelectorAll('.cpp-th--sortable').forEach(th => {
+        th.addEventListener('click', () => {
+          const col = th.dataset.col;
+          if (_sortCol === col) {
+            _sortDir = _sortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            _sortCol = col;
+            _sortDir = 'asc';
+          }
+          refresh();
+        });
+      });
 
       /* sticky header */
       _thead().style.position = _stickyHdr ? 'sticky' : '';
@@ -4678,6 +4706,72 @@
     }
 
     /* ── bind events (call once after panel is in DOM) ── */
+    function _initDrag() {
+      const panel  = _panel();
+      const handle = panel.querySelector('.cpp-header');
+      if (!handle) return;
+
+      let dragging = false, ox = 0, oy = 0;
+
+      handle.style.cursor = 'grab';
+
+      handle.addEventListener('mousedown', e => {
+        // Don't drag when clicking buttons inside the header
+        if (e.target.closest('button')) return;
+        dragging = true;
+        const rect = panel.getBoundingClientRect();
+        ox = e.clientX - rect.left;
+        oy = e.clientY - rect.top;
+        handle.style.cursor = 'grabbing';
+        e.preventDefault();
+      });
+
+      document.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        let x = e.clientX - ox;
+        let y = e.clientY - oy;
+        // Keep panel inside viewport
+        x = Math.max(0, Math.min(x, window.innerWidth  - panel.offsetWidth));
+        y = Math.max(0, Math.min(y, window.innerHeight - panel.offsetHeight));
+        panel.style.left   = x + 'px';
+        panel.style.top    = y + 'px';
+        panel.style.right  = 'auto';
+      });
+
+      document.addEventListener('mouseup', () => {
+        dragging = false;
+        handle.style.cursor = 'grab';
+      });
+    }
+
+    function _initResize() {
+      const panel  = _panel();
+      const handle = document.createElement('div');
+      handle.className = 'cpp-resize-handle';
+      panel.appendChild(handle);
+
+      let resizing = false, sx = 0, sy = 0, sw = 0, sh = 0;
+
+      handle.addEventListener('mousedown', e => {
+        resizing = true;
+        sx = e.clientX;
+        sy = e.clientY;
+        sw = panel.offsetWidth;
+        sh = panel.offsetHeight;
+        e.preventDefault();
+      });
+
+      document.addEventListener('mousemove', e => {
+        if (!resizing) return;
+        const w = Math.max(400, sw + (e.clientX - sx));
+        const h = Math.max(250, sh + (e.clientY - sy));
+        panel.style.width  = w + 'px';
+        panel.style.height = h + 'px';
+      });
+
+      document.addEventListener('mouseup', () => { resizing = false; });
+    }
+
     function bindEvents() {
       const closeBtn    = document.getElementById('cpp-close-btn');
       const settingsBtn = document.getElementById('cpp-settings-btn');
@@ -4688,6 +4782,9 @@
       /* apply settings on any change inside the drawer */
       const drawer = _drawer();
       if (drawer) drawer.addEventListener('change', _applySettings);
+
+      _initDrag();
+      _initResize();
     }
 
     /* ── global keyboard shortcut ── */

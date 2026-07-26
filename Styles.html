@@ -1927,4 +1927,33 @@ body.dark-mode .dash-export-item:hover { background: #2a2a2a; }
 .cpp-body::-webkit-scrollbar-track { background: #f1f5f9; }
 .cpp-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 .cpp-body::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.cpp-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, #cbd5e1 50%);
+  border-bottom-right-radius: 12px;
+  z-index: 10;
+}
+.cpp-resize-handle:hover {
+  background: linear-gradient(135deg, transparent 50%, #94a3b8 50%);
+}
+
+.cpp-th--sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.cpp-th--sortable:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+.cpp-sort-arrow {
+  font-size: 10px;
+  margin-left: 4px;
+  color: #3b82f6;
+}
 </style>
